@@ -40,6 +40,9 @@ dependencies:
   equatable: ^2.0.7
   go_router: ^16.2.4
   iconsax: ^0.0.8
+  geolocator: ^14.0.2
+  flutter_map: ^8.2.2
+  geocoding: ^4.0.0
 
 dev_dependencies:
   flutter_test:

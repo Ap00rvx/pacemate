@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:pacemate/features/home/presentation/screens/tabs/map_screen.dart';
 
 import '../../presentation/bloc/bottom_nav_cubit.dart';
 import 'tabs/activity_page.dart';
@@ -26,6 +27,7 @@ class _HomeView extends StatelessWidget {
   static final _pages = <Widget>[
     const FeedPage(),
     const ActivityPage(),
+    const MapScreen(),
     const LeaderboardPage(),
     const ProfilePage(),
   ];
@@ -46,8 +48,12 @@ class _HomeView extends StatelessWidget {
                 label: 'Feed',
               ),
               NavigationDestination(
-                icon: Icon(Icons.directions_run),
+                icon: Icon(Icons.rocket_launch_outlined),
                 label: 'Activity',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.directions_run),
+                label: 'Run',
               ),
               NavigationDestination(icon: Icon(Iconsax.cup), label: 'Leaders'),
               NavigationDestination(

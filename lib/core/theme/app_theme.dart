@@ -4,7 +4,8 @@ import 'package:flutter/services.dart';
 /// App-wide theme that matches the dark, orange-accented look in the design.
 class AppTheme {
   // Core brand colors
-  static const Color primary = Color(0xFFFF6A00); // Vibrant orange
+  static const Color primary = Color(0xFFFF6A00); 
+  static const Color primaryLight = Color(0xFFFFA24A); // Vibrant orange
   static const Color bg = Color(0xFF0F0F12); // Deep charcoal
   static const Color surface = Color(0xFF151518); // Cards / surfaces
   static const Color surfaceVariant = Color(0xFF1E1E22); // Elevated surfaces
