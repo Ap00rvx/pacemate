@@ -12,6 +12,8 @@ class _AppLogoState extends State<AppLogo> {
   @override
   Widget build(BuildContext context) {
     return const Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       spacing: 6,
       children: [
         Text(

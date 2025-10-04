@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:pacemate/features/onboarding/presentation/onboarding.dart';
+import 'package:pacemate/core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 
 void main() {
@@ -17,13 +17,13 @@ class RootApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Pace Mate',
       theme: AppTheme.dark(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.dark,
       debugShowCheckedModeBanner: false,
-      home: OnboardingPage(),
+      routerConfig: AppRouter.router,
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
+import 'package:pacemate/core/router/app_router.dart';
+import 'package:pacemate/core/router/route_names.dart';
 import 'package:pacemate/core/theme/app_theme.dart';
 import 'package:pacemate/core/widgets/logo_place.dart';
 import 'package:pacemate/core/widgets/overlay.dart';
@@ -14,6 +15,7 @@ class OnboardingPage extends StatelessWidget {
       appBar: AppBar(
         title: AppLogo(),
         elevation: 0,
+        centerTitle: false,
         backgroundColor: Colors.transparent,
       ),
       body: Container(
@@ -55,27 +57,20 @@ class OnboardingPage extends StatelessWidget {
                   ),
                   InkWell(
                     onTap: () {
-                      // Navigate to the next page or perform an action
+                      AppRouter.go(RouteNames().auth, context);
                     },
                     child: Container(
+                      constraints: BoxConstraints(
+                        minWidth: double.infinity,
+                        minHeight: 60,
+                      ),
                       decoration: BoxDecoration(
-                        color: AppTheme.surfaceVariant,
+                        color: AppTheme.primary,
                         borderRadius: BorderRadius.circular(18),
                       ),
                       child: Row(
                         children: [
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(500),
-                              ),
-                            ),
-                            onPressed: () {
-                              // Navigate to the next page or perform an action
-                            },
-                            child: Icon(Iconsax.arrow_right_1, size: 24),
-                          ),
-                          Spacer(),
+                          SizedBox(width: 14),
                           Text(
                             "Get Started",
                             style: TextStyle(
