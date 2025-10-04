@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:pacemate/core/router/app_router.dart';
 import 'package:pacemate/core/router/route_names.dart';
 import 'package:pacemate/core/widgets/pm_text_field.dart';

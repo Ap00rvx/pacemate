@@ -16,6 +16,8 @@ class _AuthPageState extends State<AuthPage> {
     // TODO: Wire up Google Sign-In logic
     // e.g., context.read<AuthCubit>().signInWithGoogle();
     debugPrint('Google sign-in tapped');
+    // For now, just navigate to home
+    AppRouter.go(_routes.home, context);
   }
 
   void _onEmailSignup() {

@@ -7,6 +7,7 @@ import 'package:pacemate/features/auth/presentation/screens/signin_page.dart';
 import 'package:pacemate/features/auth/presentation/screens/email_signup_dart.dart';
 import 'package:pacemate/features/onboarding/presentation/onboarding.dart';
 import 'package:pacemate/features/splash/presentation/splash.dart';
+import 'package:pacemate/features/home/presentation/screens/home_page.dart';
 
 class AppRouter {
   static final _routeNames = RouteNames();
@@ -35,10 +36,18 @@ class AppRouter {
           reverseTransitionDuration: const Duration(milliseconds: 250),
         ),
       ),
-      // GoRoute(
-      //   path: _routeNames.home,
-      //   builder: (context, state) => const HomePage(),
-      // ),
+
+      GoRoute(
+        path: _routeNames.home,
+        name: 'home',
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          key: state.pageKey,
+          child: const HomePage(),
+          transitionsBuilder: defaultPageTransition,
+          transitionDuration: const Duration(milliseconds: 350),
+          reverseTransitionDuration: const Duration(milliseconds: 250),
+        ),
+      ),
       GoRoute(
         path: _routeNames.auth,
         pageBuilder: (context, state) => CustomTransitionPage<void>(
