@@ -52,7 +52,8 @@ class LocationCubit extends Cubit<LocationState> {
     }
 
     final service = await geo.Geolocator.isLocationServiceEnabled();
-    final ready = service &&
+    final ready =
+        service &&
         (permission == geo.LocationPermission.always ||
             permission == geo.LocationPermission.whileInUse);
 
@@ -65,12 +66,14 @@ class LocationCubit extends Cubit<LocationState> {
       } catch (_) {}
     }
 
-    emit(state.copyWith(
-      permission: permission,
-      serviceEnabled: service,
-      ready: ready,
-      lastPosition: pos ?? state.lastPosition,
-    ));
+    emit(
+      state.copyWith(
+        permission: permission,
+        serviceEnabled: service,
+        ready: ready,
+        lastPosition: pos ?? state.lastPosition,
+      ),
+    );
 
     return pos;
   }

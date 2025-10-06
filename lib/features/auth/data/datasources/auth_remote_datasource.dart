@@ -162,6 +162,7 @@ class AuthRemoteDataSource {
     }
   }
 
+  
   /// Check if email exists
   Future<EmailCheckResponse> checkEmailExists(String email) async {
     try {

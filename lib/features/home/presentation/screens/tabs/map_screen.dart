@@ -23,11 +23,32 @@ class _MapScreenState extends State<MapScreen> {
   final _mapController = MapController();
   final _location = LocationCubit(); // singleton
   LatLng? _lastConsumed;
+  bool _mapReady = false;
+  LatLng? _pendingTarget;
+  double? _pendingZoom;
 
   @override
   void initState() {
     super.initState();
     _location.ensureReady();
+  }
+
+  double _currentZoomOrDefault() {
+    try {
+      return _mapReady ? _mapController.camera.zoom : 19.0;
+    } catch (_) {
+      return 19.0;
+    }
+  }
+
+  void _safeMove(LatLng target, [double? zoom]) {
+    if (_mapReady) {
+      final z = zoom ?? _currentZoomOrDefault();
+      _mapController.move(target, z);
+    } else {
+      _pendingTarget = target;
+      _pendingZoom = zoom;
+    }
   }
 
   @override
@@ -44,11 +65,9 @@ class _MapScreenState extends State<MapScreen> {
           if (pos == null) return;
 
           final here = LatLng(pos.latitude, pos.longitude);
-          final z = _mapController.camera.zoom <= 2
-              ? 19.0
-              : _mapController.camera.zoom;
-
-          _mapController.move(here, z);
+          final currentZoom = _currentZoomOrDefault();
+          final z = currentZoom <= 2 ? 19.0 : currentZoom;
+          _safeMove(here, z);
 
           final tracking = context.read<TrackingCubit>();
           if (tracking.state.isTracking && !tracking.state.isPaused) {
@@ -102,10 +121,9 @@ class _MapScreenState extends State<MapScreen> {
                 : const LatLng(40.7128, -74.0060);
 
             if (locState.lastPosition != null && state.points.isEmpty) {
-              final z = _mapController.camera.zoom <= 2
-                  ? 19.0
-                  : _mapController.camera.zoom;
-              _mapController.move(
+              final currentZoom = _currentZoomOrDefault();
+              final z = currentZoom <= 2 ? 19.0 : currentZoom;
+              _safeMove(
                 LatLng(
                   locState.lastPosition!.latitude,
                   locState.lastPosition!.longitude,
@@ -134,10 +152,7 @@ class _MapScreenState extends State<MapScreen> {
                               distanceFromLast: 0,
                             ),
                           );
-                          _mapController.move(
-                            LatLng(pos.latitude, pos.longitude),
-                            19,
-                          );
+                          _safeMove(LatLng(pos.latitude, pos.longitude), 19);
                           _lastConsumed = LatLng(pos.latitude, pos.longitude);
                         }
                       }
@@ -198,6 +213,18 @@ class _MapScreenState extends State<MapScreen> {
                           mapController: _mapController,
 
                           options: MapOptions(
+                            onMapReady: () {
+                              setState(() {
+                                _mapReady = true;
+                              });
+                              if (_pendingTarget != null) {
+                                final z =
+                                    _pendingZoom ?? _mapController.camera.zoom;
+                                _mapController.move(_pendingTarget!, z);
+                                _pendingTarget = null;
+                                _pendingZoom = null;
+                              }
+                            },
                             interactionOptions: InteractionOptions(
                               flags: InteractiveFlag.none,
                             ),
@@ -305,7 +332,7 @@ class _MapScreenState extends State<MapScreen> {
                                     distanceFromLast: 0,
                                   ),
                                 );
-                                _mapController.move(
+                                _safeMove(
                                   LatLng(pos.latitude, pos.longitude),
                                   19,
                                 );

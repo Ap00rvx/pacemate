@@ -8,7 +8,6 @@ import 'package:geocoding/geocoding.dart' as gc;
 
 import '../../../../core/router/app_router.dart';
 import '../../../../core/router/route_names.dart';
-import '../../domain/entities/auth_requests.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../tracking/presentation/bloc/location_cubit.dart';
 
@@ -83,16 +82,30 @@ class _SignUpDetailsPageState extends State<SignUpDetailsPage> {
         );
         if (placemarks.isNotEmpty) {
           final p = placemarks.first;
-          final locality = [p.locality, p.subLocality].where((e) => (e ?? '').isNotEmpty).join(', ');
-          final admin = [p.administrativeArea, p.subAdministrativeArea].where((e) => (e ?? '').isNotEmpty).join(', ');
+          final locality = [
+            p.locality,
+            p.subLocality,
+          ].where((e) => (e ?? '').isNotEmpty).join(', ');
+          final admin = [
+            p.administrativeArea,
+            p.subAdministrativeArea,
+          ].where((e) => (e ?? '').isNotEmpty).join(', ');
           final country = p.country ?? '';
-          final composed = [locality, admin, country].where((e) => e.isNotEmpty).join(', ');
-          _locationCtrl.text = composed.isNotEmpty ? composed : '${pos.latitude.toStringAsFixed(5)}, ${pos.longitude.toStringAsFixed(5)}';
+          final composed = [
+            locality,
+            admin,
+            country,
+          ].where((e) => e.isNotEmpty).join(', ');
+          _locationCtrl.text = composed.isNotEmpty
+              ? composed
+              : '${pos.latitude.toStringAsFixed(5)}, ${pos.longitude.toStringAsFixed(5)}';
         } else {
-          _locationCtrl.text = '${pos.latitude.toStringAsFixed(5)}, ${pos.longitude.toStringAsFixed(5)}';
+          _locationCtrl.text =
+              '${pos.latitude.toStringAsFixed(5)}, ${pos.longitude.toStringAsFixed(5)}';
         }
       } catch (_) {
-        _locationCtrl.text = '${pos.latitude.toStringAsFixed(5)}, ${pos.longitude.toStringAsFixed(5)}';
+        _locationCtrl.text =
+            '${pos.latitude.toStringAsFixed(5)}, ${pos.longitude.toStringAsFixed(5)}';
       }
     }
     if (mounted) setState(() => _locLoading = false);
@@ -187,25 +200,50 @@ class _SignUpDetailsPageState extends State<SignUpDetailsPage> {
     if (pos == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Enable location permission and services')),
+          const SnackBar(
+            content: Text('Enable location permission and services'),
+          ),
         );
       }
       return;
     }
     try {
-      final placemarks = await gc.placemarkFromCoordinates(pos.latitude, pos.longitude);
+      final placemarks = await gc.placemarkFromCoordinates(
+        pos.latitude,
+        pos.longitude,
+      );
       if (placemarks.isNotEmpty) {
         final p = placemarks.first;
-        final locality = [p.locality, p.subLocality].where((e) => (e ?? '').isNotEmpty).join(', ');
-        final admin = [p.administrativeArea, p.subAdministrativeArea].where((e) => (e ?? '').isNotEmpty).join(', ');
+        final locality = [
+          p.locality,
+          p.subLocality,
+        ].where((e) => (e ?? '').isNotEmpty).join(', ');
+        final admin = [
+          p.administrativeArea,
+          p.subAdministrativeArea,
+        ].where((e) => (e ?? '').isNotEmpty).join(', ');
         final country = p.country ?? '';
-        final composed = [locality, admin, country].where((e) => e.isNotEmpty).join(', ');
-        setState(() => _locationCtrl.text = composed.isNotEmpty ? composed : '${pos.latitude.toStringAsFixed(5)}, ${pos.longitude.toStringAsFixed(5)}');
+        final composed = [
+          locality,
+          admin,
+          country,
+        ].where((e) => e.isNotEmpty).join(', ');
+        setState(
+          () => _locationCtrl.text = composed.isNotEmpty
+              ? composed
+              : '${pos.latitude.toStringAsFixed(5)}, ${pos.longitude.toStringAsFixed(5)}',
+        );
       } else {
-        setState(() => _locationCtrl.text = '${pos.latitude.toStringAsFixed(5)}, ${pos.longitude.toStringAsFixed(5)}');
+        setState(
+          () => _locationCtrl.text =
+              '${pos.latitude.toStringAsFixed(5)}, ${pos.longitude.toStringAsFixed(5)}',
+        );
       }
     } catch (_) {
-      setState(() => _locationCtrl.text = '${pos.latitude.toStringAsFixed(5)}, ${pos.longitude.toStringAsFixed(5)}');
+      setState(
+        () => _locationCtrl.text =
+            '${pos.latitude.toStringAsFixed(5)}, ${pos.longitude.toStringAsFixed(5)}',
+      );
     }
   }
 
@@ -292,7 +330,6 @@ class _SignUpDetailsPageState extends State<SignUpDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final routes = RouteNames();
 
     return BlocListener<AuthBloc, AuthState>(

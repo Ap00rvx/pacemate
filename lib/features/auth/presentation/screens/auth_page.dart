@@ -28,8 +28,20 @@ class _AuthPageState extends State<AuthPage> {
             AppRouter.go(_routes.home, context);
             break;
           case AuthStatus.googleSignupRequired:
-            // Show Google signup form
-            _showGoogleSignupDialog(context, state.googleSignupData!);
+            // Navigate to signup details with prefilled Google data
+            final data = state.googleSignupData!;
+            final user = FirebaseAuth.instance.currentUser;
+            final params = <String, String>{
+              'email': data.email,
+              'googleId': data.googleId,
+            };
+            if (user?.displayName != null && user!.displayName!.isNotEmpty) {
+              params['name'] = user.displayName!;
+            }
+            if (user?.photoURL != null && user!.photoURL!.isNotEmpty) {
+              params['avatarUrl'] = user.photoURL!;
+            }
+            AppRouter.push(_routes.signupDetails, context, queryParams: params);
             break;
           case AuthStatus.error:
             // Show error message
@@ -46,13 +58,6 @@ class _AuthPageState extends State<AuthPage> {
       },
       child: const _AuthPageView(),
     );
-  }
-
-  void _showGoogleSignupDialog(
-    BuildContext context,
-    GoogleSignupData googleData,
-  ) {
-    print('Google Signup Data: ${googleData.email}, ${googleData.googleId}');
   }
 }
 
@@ -76,7 +81,7 @@ class _AuthPageViewState extends State<_AuthPageView> {
       final GoogleSignInAccount? gUser = await _googleSignIn.signIn().onError((
         error,
         stackTrace,
-      ){
+      ) {
         Logger().e('Google sign-in error: $error');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -84,6 +89,7 @@ class _AuthPageViewState extends State<_AuthPageView> {
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
+        return null;
       });
       print('Google user: ${gUser?.email}, ${gUser?.id}');
       if (gUser == null) return; // canceled
