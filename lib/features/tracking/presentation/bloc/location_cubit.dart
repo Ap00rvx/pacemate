@@ -42,6 +42,39 @@ class LocationCubit extends Cubit<LocationState> {
     }
   }
 
+  /// Fetch current location once without starting the stream.
+  /// Returns the position if available, else null. Emits state with the
+  /// latest permission/service flags and lastPosition if fetched.
+  Future<geo.Position?> getCurrentPosition() async {
+    var permission = await geo.Geolocator.checkPermission();
+    if (permission == geo.LocationPermission.denied) {
+      permission = await geo.Geolocator.requestPermission();
+    }
+
+    final service = await geo.Geolocator.isLocationServiceEnabled();
+    final ready = service &&
+        (permission == geo.LocationPermission.always ||
+            permission == geo.LocationPermission.whileInUse);
+
+    geo.Position? pos;
+    if (ready) {
+      try {
+        pos = await geo.Geolocator.getCurrentPosition(
+          desiredAccuracy: geo.LocationAccuracy.best,
+        );
+      } catch (_) {}
+    }
+
+    emit(state.copyWith(
+      permission: permission,
+      serviceEnabled: service,
+      ready: ready,
+      lastPosition: pos ?? state.lastPosition,
+    ));
+
+    return pos;
+  }
+
   void _startStream() {
     _sub?.cancel();
     _sub =

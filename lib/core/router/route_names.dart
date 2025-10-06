@@ -5,5 +5,6 @@ class RouteNames {
   String auth = '/auth';
   String signin = '/signin';
   String signup = '/signup';
+  String signupDetails = '/signup-details';
   String init = "/";
 }

@@ -55,8 +55,12 @@ class _PMTextFieldState extends State<PMTextField> {
   Widget build(BuildContext context) {
     final suffix = widget.isPassword
         ? IconButton(
+            style: IconButton.styleFrom(backgroundColor: Colors.transparent),
             onPressed: () => setState(() => _obscure = !_obscure),
-            icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+            icon: Icon(
+              _obscure ? Icons.visibility : Icons.visibility_off,
+              size: 20,
+            ),
           )
         : widget.suffixIcon;
 

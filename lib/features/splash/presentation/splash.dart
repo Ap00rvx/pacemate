@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pacemate/core/router/app_router.dart';
 import 'package:pacemate/core/router/route_names.dart';
 import 'package:pacemate/core/widgets/logo_place.dart';
+import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,6 +17,8 @@ class _SplashScreenState extends State<SplashScreen>
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _opacityAnimation;
+  late final DateTime _startAt;
+  bool _navigated = false;
 
   @override
   void initState() {
@@ -38,11 +42,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Start both animations
     _controller.forward();
-
-    // Navigate after delay
-    Future.delayed(const Duration(seconds: 3), () {
-      AppRouter.go(RouteNames().onboarding, context);
-    });
+    _startAt = DateTime.now();
   }
 
   @override
@@ -54,16 +54,36 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        alignment: Alignment.center,
+      body: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) async {
+          if (_navigated) return;
+          // Ensure splash stays visible for at least 1200ms
+          final minDuration = const Duration(milliseconds: 1200);
+          final elapsed = DateTime.now().difference(_startAt);
+          final wait = elapsed >= minDuration
+              ? Duration.zero
+              : minDuration - elapsed;
 
-        child: FadeTransition(
-          opacity: _opacityAnimation,
-          child: ScaleTransition(
-            scale: _scaleAnimation,
-            child: const AppLogo(),
+          if (state.status == AuthStatus.authenticated) {
+            _navigated = true;
+            await Future.delayed(wait);
+            if (mounted) AppRouter.go(RouteNames().home, context);
+          } else if (state.status == AuthStatus.unauthenticated) {
+            _navigated = true;
+            await Future.delayed(wait);
+            if (mounted) AppRouter.go(RouteNames().onboarding, context);
+          }
+        },
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          alignment: Alignment.center,
+          child: FadeTransition(
+            opacity: _opacityAnimation,
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: const AppLogo(),
+            ),
           ),
         ),
       ),

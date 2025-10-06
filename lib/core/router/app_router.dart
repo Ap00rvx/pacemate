@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pacemate/core/router/route_names.dart';
 import 'package:pacemate/core/transitions/page_transition.dart';
 import 'package:pacemate/features/auth/presentation/screens/auth_page.dart';
+import 'package:pacemate/features/auth/presentation/screens/sign_up_details.dart';
 import 'package:pacemate/features/auth/presentation/screens/signin_page.dart';
 import 'package:pacemate/features/auth/presentation/screens/email_signup_dart.dart';
 import 'package:pacemate/features/onboarding/presentation/onboarding.dart';
@@ -80,22 +81,51 @@ class AppRouter {
           reverseTransitionDuration: const Duration(milliseconds: 250),
         ),
       ),
+      GoRoute(
+        path: _routeNames.signupDetails,
+        name: 'signupDetails',
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          key: state.pageKey,
+          child: SignUpDetailsPage(
+            email: (state.extra as Map?)?['email'],
+            password: (state.extra as Map?)?['password'],
+            displayName: (state.extra as Map?)?['name'],
+            googleId: (state.extra as Map?)?['googleId'],
+            avatarUrl: (state.extra as Map?)?['avatarUrl'],
+          ),
+          transitionsBuilder: defaultPageTransition,
+          transitionDuration: const Duration(milliseconds: 350),
+          reverseTransitionDuration: const Duration(milliseconds: 250),
+        ),
+      ),
     ],
   );
 
-  static void go(String routeName, BuildContext context) {
-    context.go(routeName);
+  static void go(
+    String routeName,
+    BuildContext context, {
+    Map<String, String>? queryParams,
+  }) {
+    context.go(routeName, extra: queryParams);
   }
 
-  static void push(String routeName, BuildContext context) {
-    context.push(routeName);
+  static void push(
+    String routeName,
+    BuildContext context, {
+    Map<String, String>? queryParams,
+  }) {
+    context.push(routeName, extra: queryParams);
   }
 
   static void pop(BuildContext context) {
     context.pop();
   }
 
-  static void pushReplacement(String routeName, BuildContext context) {
-    context.pushReplacement(routeName);
+  static void pushReplacement(
+    String routeName,
+    BuildContext context, {
+    Map<String, String>? queryParams,
+  }) {
+    context.pushReplacement(routeName, extra: queryParams);
   }
 }

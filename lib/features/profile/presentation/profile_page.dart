@@ -1,0 +1,117 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pacemate/core/router/app_router.dart';
+import 'package:pacemate/core/router/route_names.dart';
+import 'package:pacemate/core/theme/app_theme.dart';
+import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:pacemate/features/profile/presentation/widgets/activities_section.dart';
+import 'package:pacemate/features/profile/presentation/widgets/header_section.dart';
+
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _ProfileView();
+  }
+}
+
+class _ProfileView extends StatelessWidget {
+  const _ProfileView();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        if (state.status == AuthStatus.loading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (state.status == AuthStatus.authenticated && state.user != null) {
+          final u = state.user!;
+          return Scaffold(
+            body: RefreshIndicator(
+              onRefresh: () async {
+                context.read<AuthBloc>().add(const GetProfileEvent());
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  HeaderSection(user: u),
+                  ActivitiesSection(),
+                  const SizedBox(height: 12),
+                  LogoutButton(),
+                ],
+              ),
+            ),
+          );
+        }
+        // Not authenticated or no user yet
+        return const Center(child: Text('Sign in to view your profile'));
+      },
+    );
+  }
+}
+
+class LogoutButton extends StatelessWidget {
+  LogoutButton({super.key});
+
+  void showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              foregroundColor: AppTheme.onBg,
+            ),
+            onPressed: () async {
+              context.read<AuthBloc>().add(LogoutEvent());
+              Navigator.of(context).pop();
+            },
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (BuildContext context, AuthState state) {
+        if (state.status == AuthStatus.unauthenticated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Logged out successfully')),
+          );
+          // Navigate to home page or login page
+          AppRouter.go(RouteNames().onboarding, context);
+        }
+      },
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.primary,
+            foregroundColor: AppTheme.onBg,
+            fixedSize: Size(double.infinity, 48),
+          ),
+          onPressed: () {
+            showLogoutDialog(context);
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 10,
+            children: [Text('Logout'), Icon(Icons.logout, size: 20)],
+          ),
+        ),
+      ),
+    );
+  }
+}

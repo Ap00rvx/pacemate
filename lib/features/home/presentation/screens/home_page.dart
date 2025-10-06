@@ -7,7 +7,7 @@ import '../../presentation/bloc/bottom_nav_cubit.dart';
 import 'tabs/activity_page.dart';
 import 'tabs/feed_page.dart';
 import 'tabs/leaderboard_page.dart';
-import 'tabs/profile_page.dart';
+import '../../../profile/presentation/profile_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
