@@ -4,7 +4,12 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:pacemate/core/theme/app_theme.dart';
+import 'package:pacemate/core/widgets/app_loader.dart';
 import 'package:pacemate/core/widgets/logo_place.dart';
+import 'package:pacemate/core/router/app_router.dart';
+import 'package:pacemate/core/router/route_names.dart';
+import 'package:pacemate/features/activities/presentation/bloc/activity_bloc.dart';
+import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
 
 import '../../../../tracking/domain/entities/tracking_point.dart';
 import '../../../../tracking/domain/enums/activity_type.dart';
@@ -58,43 +63,63 @@ class _MapScreenState extends State<MapScreen> {
         BlocProvider<TrackingCubit>(create: (_) => TrackingCubit()),
         BlocProvider<LocationCubit>.value(value: _location),
       ],
-      child: BlocListener<LocationCubit, LocationState>(
-        listenWhen: (prev, curr) => curr.lastPosition != prev.lastPosition,
-        listener: (context, locState) {
-          final pos = locState.lastPosition;
-          if (pos == null) return;
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<LocationCubit, LocationState>(
+            listenWhen: (prev, curr) => curr.lastPosition != prev.lastPosition,
+            listener: (context, locState) {
+              final pos = locState.lastPosition;
+              if (pos == null) return;
 
-          final here = LatLng(pos.latitude, pos.longitude);
-          final currentZoom = _currentZoomOrDefault();
-          final z = currentZoom <= 2 ? 19.0 : currentZoom;
-          _safeMove(here, z);
+              final here = LatLng(pos.latitude, pos.longitude);
+              final currentZoom = _currentZoomOrDefault();
+              final z = currentZoom <= 2 ? 19.0 : currentZoom;
+              _safeMove(here, z);
 
-          final tracking = context.read<TrackingCubit>();
-          if (tracking.state.isTracking && !tracking.state.isPaused) {
-            final last = tracking.state.points.isNotEmpty
-                ? tracking.state.points.last
-                : null;
-            final dist = last == null
-                ? 0.0
-                : haversineDistanceMeters(
-                    lat1: last.latitude,
-                    lon1: last.longitude,
-                    lat2: here.latitude,
-                    lon2: here.longitude,
+              final tracking = context.read<TrackingCubit>();
+              if (tracking.state.isTracking && !tracking.state.isPaused) {
+                final last = tracking.state.points.isNotEmpty
+                    ? tracking.state.points.last
+                    : null;
+                final dist = last == null
+                    ? 0.0
+                    : haversineDistanceMeters(
+                        lat1: last.latitude,
+                        lon1: last.longitude,
+                        lat2: here.latitude,
+                        lon2: here.longitude,
+                      );
+                if (_lastConsumed == null || _lastConsumed != here) {
+                  tracking.addPoint(
+                    TrackingPoint(
+                      latitude: here.latitude,
+                      longitude: here.longitude,
+                      timestamp: DateTime.now(),
+                      distanceFromLast: dist,
+                      elevation: pos.altitude.toInt(),
+                    ),
                   );
-            if (_lastConsumed == null || _lastConsumed != here) {
-              tracking.addPoint(
-                TrackingPoint(
-                  latitude: here.latitude,
-                  longitude: here.longitude,
-                  timestamp: DateTime.now(),
-                  distanceFromLast: dist,
-                ),
-              );
-              _lastConsumed = here;
-            }
-          }
-        },
+                  _lastConsumed = here;
+                }
+              }
+            },
+          ),
+          BlocListener<ActivityBloc, ActivityState>(
+            listenWhen: (prev, curr) => prev.mutateStatus != curr.mutateStatus,
+            listener: (context, actState) {
+              if (actState.mutateStatus == ActivityStatus.success &&
+                  actState.lastMutated != null) {
+                final id = actState.lastMutated!.id;
+                final routes = RouteNames();
+                AppRouter.push(
+                  routes.activityDetail,
+                  context,
+                  queryParams: {'id': id},
+                );
+              }
+            },
+          ),
+        ],
         child: BlocBuilder<TrackingCubit, TrackingState>(
           builder: (context, state) {
             final cubit = context.read<TrackingCubit>();
@@ -138,7 +163,7 @@ class _MapScreenState extends State<MapScreen> {
                 title: AppLogo(),
                 actions: [
                   PopupMenuButton<ActivityType>(
-                    icon: const Icon(Iconsax.category),
+                    icon: const Icon(Iconsax.menu4),
                     onSelected: (t) {
                       if (!state.isTracking) {
                         cubit.start(t);
@@ -150,6 +175,7 @@ class _MapScreenState extends State<MapScreen> {
                               longitude: pos.longitude,
                               timestamp: DateTime.now(),
                               distanceFromLast: 0,
+                              elevation: pos.altitude.toInt(),
                             ),
                           );
                           _safeMove(LatLng(pos.latitude, pos.longitude), 19);
@@ -330,6 +356,7 @@ class _MapScreenState extends State<MapScreen> {
                                     longitude: pos.longitude,
                                     timestamp: DateTime.now(),
                                     distanceFromLast: 0,
+                                    elevation: pos.altitude.toInt(),
                                   ),
                                 );
                                 _safeMove(
@@ -344,7 +371,30 @@ class _MapScreenState extends State<MapScreen> {
                             },
                             onPause: () => cubit.pause(),
                             onResume: () => cubit.resume(),
-                            onStop: () => cubit.stop(),
+                            onStop: () async {
+                              // Persist activity via API and then stop locally
+                              final actBloc = context.read<ActivityBloc>();
+                              final authBloc = context.read<AuthBloc>();
+                              final s = cubit.state;
+                              if (s.activityType != null &&
+                                  s.durationSeconds > 0 &&
+                                  s.distanceMeters > 0) {
+                                actBloc.add(
+                                  CreateActivityEvent(
+                                    type: s.activityType!,
+                                    duration: s.durationSeconds,
+                                    distance: s.distanceMeters,
+                                    calories: s.calories,
+                                    route: [
+                                      for (final p in s.points)
+                                        (p.latitude, p.longitude),
+                                    ],
+                                    elevation: s.elevation?.toDouble() ?? 0.0,
+                                  ),
+                                );
+                              }
+                              cubit.stop();
+                            },
                           ),
                         ),
                       ],
@@ -415,39 +465,46 @@ class _ControlsBar extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              if (!isTracking)
-                _ControlButton(
-                  icon: Iconsax.play,
-                  label: 'Start Tracking',
-                  color: cs.primary,
-                  onTap: onStart,
-                )
-              else ...[
-                if (!isPaused)
-                  _ControlButton(
-                    icon: Iconsax.pause,
-                    label: 'Pause',
-                    color: cs.tertiary,
-                    onTap: onPause,
-                  )
-                else
-                  _ControlButton(
-                    icon: Iconsax.play,
-                    label: 'Resume',
-                    color: cs.primary,
-                    onTap: onResume,
-                  ),
-                _ControlButton(
-                  icon: Iconsax.stop,
-                  label: 'Stop',
-                  color: cs.error,
-                  onTap: onStop,
-                ),
-              ],
-            ],
+          child: BlocBuilder<ActivityBloc, ActivityState>(
+            builder: (context, state) {
+              if (state.mutateStatus == ActivityStatus.loading) {
+                return SizedBox(height: 30, width: 30, child: AppLoader());
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  if (!isTracking)
+                    _ControlButton(
+                      icon: Iconsax.play,
+                      label: 'Start Tracking',
+                      color: cs.primary,
+                      onTap: onStart,
+                    )
+                  else ...[
+                    if (!isPaused)
+                      _ControlButton(
+                        icon: Iconsax.pause,
+                        label: 'Pause',
+                        color: cs.tertiary,
+                        onTap: onPause,
+                      )
+                    else
+                      _ControlButton(
+                        icon: Iconsax.play,
+                        label: 'Resume',
+                        color: cs.primary,
+                        onTap: onResume,
+                      ),
+                    _ControlButton(
+                      icon: Iconsax.stop,
+                      label: 'Stop',
+                      color: cs.error,
+                      onTap: onStop,
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
         ),
       ),

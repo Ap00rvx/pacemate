@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -72,11 +73,13 @@ class TrackingCubit extends Cubit<TrackingState> {
       distanceKm: distance / 1000.0,
       durationSeconds: state.durationSeconds,
     );
+    final elevation = max(p.elevation, state.elevation ?? 0);
     emit(
       state.copyWith(
         points: updatedPoints,
         distanceMeters: distance,
         calories: calories,
+        elevation: elevation,
       ),
     );
   }

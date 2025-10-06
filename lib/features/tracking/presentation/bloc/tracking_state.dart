@@ -9,6 +9,7 @@ class TrackingState extends Equatable {
   final List<TrackingPoint> points;
   final double distanceMeters;
   final int calories;
+  final int? elevation;
 
   const TrackingState({
     required this.isTracking,
@@ -19,6 +20,7 @@ class TrackingState extends Equatable {
     required this.points,
     required this.distanceMeters,
     required this.calories,
+    required this.elevation,
   });
 
   const TrackingState.initial()
@@ -29,7 +31,8 @@ class TrackingState extends Equatable {
       durationSeconds = 0,
       points = const [],
       distanceMeters = 0,
-      calories = 0;
+      calories = 0,
+      elevation = null;
 
   TrackingState copyWith({
     bool? isTracking,
@@ -40,6 +43,7 @@ class TrackingState extends Equatable {
     List<TrackingPoint>? points,
     double? distanceMeters,
     int? calories,
+    int? elevation,
   }) {
     return TrackingState(
       isTracking: isTracking ?? this.isTracking,
@@ -50,6 +54,7 @@ class TrackingState extends Equatable {
       points: points ?? this.points,
       distanceMeters: distanceMeters ?? this.distanceMeters,
       calories: calories ?? this.calories,
+      elevation: elevation ?? this.elevation
     );
   }
 
@@ -62,6 +67,7 @@ class TrackingState extends Equatable {
     durationSeconds,
     points,
     distanceMeters,
+    elevation,
     calories,
   ];
 }

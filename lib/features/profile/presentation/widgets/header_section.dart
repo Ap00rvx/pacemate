@@ -56,7 +56,7 @@ class HeaderSection extends StatelessWidget {
                               ),
                         ),
                         Text(
-                          user.age != null ? '   (${user.gender})' : '',
+                          '   (${user.gender})',
                           style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(
                                 color: AppTheme.muted,

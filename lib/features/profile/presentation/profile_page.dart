@@ -5,6 +5,7 @@ import 'package:pacemate/core/router/route_names.dart';
 import 'package:pacemate/core/theme/app_theme.dart';
 import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:pacemate/features/profile/presentation/widgets/activities_section.dart';
+import 'package:pacemate/features/activities/presentation/bloc/activity_bloc.dart';
 import 'package:pacemate/features/profile/presentation/widgets/header_section.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -32,15 +33,24 @@ class _ProfileView extends StatelessWidget {
             body: RefreshIndicator(
               onRefresh: () async {
                 context.read<AuthBloc>().add(const GetProfileEvent());
+                // Also refresh activities and stats for the profile screen
+                context.read<ActivityBloc>().add(
+                  const FetchUserActivitiesEvent(page: 1, limit: 10),
+                );
+                context.read<ActivityBloc>().add(
+                  const FetchStatsEvent(period: 'all'),
+                );
               },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  HeaderSection(user: u),
-                  ActivitiesSection(),
-                  const SizedBox(height: 12),
-                  LogoutButton(),
-                ],
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    HeaderSection(user: u),
+                    ActivitiesSection(user: u),
+                    const SizedBox(height: 12),
+                    LogoutButton(),
+                  ],
+                ),
               ),
             ),
           );

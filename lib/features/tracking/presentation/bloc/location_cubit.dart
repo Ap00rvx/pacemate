@@ -84,10 +84,26 @@ class LocationCubit extends Cubit<LocationState> {
         geo.Geolocator.getPositionStream(
           locationSettings: const geo.LocationSettings(
             accuracy: geo.LocationAccuracy.best,
-            distanceFilter: 3, // meters
+            distanceFilter: 2,
+            // meters
           ),
         ).listen((pos) {
-          emit(state.copyWith(lastPosition: pos));
+          print('Position: ${pos.toJson()}');
+          double gain = state.elevationGain;
+          double maxEl = state.maxElevation;
+          final prev = state.lastPosition;
+          if (prev != null) {
+            final delta = pos.altitude - prev.altitude;
+            if (delta > 0) gain += delta;
+          }
+          if (pos.altitude > maxEl) maxEl = pos.altitude;
+          emit(
+            state.copyWith(
+              lastPosition: pos,
+              elevationGain: gain,
+              maxElevation: maxEl,
+            ),
+          );
         });
   }
 
@@ -100,5 +116,10 @@ class LocationCubit extends Cubit<LocationState> {
   Future<void> close() async {
     await _stopStream();
     return super.close();
+  }
+
+  /// Reset elevation statistics (e.g., when starting a new tracking session)
+  void resetElevation() {
+    emit(state.copyWith(elevationGain: 0.0, maxElevation: 0.0));
   }
 }

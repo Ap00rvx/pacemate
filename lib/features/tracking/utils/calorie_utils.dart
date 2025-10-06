@@ -25,6 +25,7 @@ double _metFromSpeed({required ActivityType type, required double speedKmh}) {
     return switch (type) {
       ActivityType.running => 6.0,
       ActivityType.walking => 2.5,
+      ActivityType.cycling => 4.0,
     };
   }
 
@@ -43,5 +44,11 @@ double _metFromSpeed({required ActivityType type, required double speedKmh}) {
       if (speedKmh < 12.9) return 11.5; // ~12.1 km/h
       if (speedKmh < 14.9) return 12.5; // ~13.8 km/h
       return 13.5; // >= 14.9 km/h
+    case ActivityType.cycling:
+      if (speedKmh < 16) return 4.0; // leisure, <10 mph
+      if (speedKmh < 19) return 6.0; // moderate, 10-11.9 mph
+      if (speedKmh < 22) return 8.0; // vigorous, 12-13.9 mph
+      if (speedKmh < 25) return 10.0; // very vigorous, 14-15.9 mph
+      return 12.0; // racing, >=16 mph
   }
 }

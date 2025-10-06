@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pacemate/core/router/app_router.dart';
+import 'package:pacemate/features/activities/activities_di.dart';
 import 'package:pacemate/features/auth/auth_di.dart';
 import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:pacemate/firebase_options.dart';
@@ -29,6 +30,9 @@ class RootApp extends StatelessWidget {
       providers: [
         BlocProvider(
           create: (context) => AuthDI.getAuthBloc()..add(const InitialAuthEvent()),
+        ),
+        BlocProvider(
+          create: (context) => ActivitiesDI.getBloc(),
         ),
       ],
       child: MaterialApp.router(

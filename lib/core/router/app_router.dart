@@ -9,6 +9,7 @@ import 'package:pacemate/features/auth/presentation/screens/email_signup_dart.da
 import 'package:pacemate/features/onboarding/presentation/onboarding.dart';
 import 'package:pacemate/features/splash/presentation/splash.dart';
 import 'package:pacemate/features/home/presentation/screens/home_page.dart';
+import 'package:pacemate/features/activities/presentation/screens/activity_detail_page.dart';
 
 class AppRouter {
   static final _routeNames = RouteNames();
@@ -93,6 +94,17 @@ class AppRouter {
             googleId: (state.extra as Map?)?['googleId'],
             avatarUrl: (state.extra as Map?)?['avatarUrl'],
           ),
+          transitionsBuilder: defaultPageTransition,
+          transitionDuration: const Duration(milliseconds: 350),
+          reverseTransitionDuration: const Duration(milliseconds: 250),
+        ),
+      ),
+      GoRoute(
+        path: _routeNames.activityDetail,
+        name: 'activityDetail',
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          key: state.pageKey,
+          child: ActivityDetailPage(activityId: (state.extra as Map?)?['id']),
           transitionsBuilder: defaultPageTransition,
           transitionDuration: const Duration(milliseconds: 350),
           reverseTransitionDuration: const Duration(milliseconds: 250),

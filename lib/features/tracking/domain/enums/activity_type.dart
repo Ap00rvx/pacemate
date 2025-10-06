@@ -1,1 +1,1 @@
-enum ActivityType { running, walking }
+enum ActivityType { running, walking, cycling }
