@@ -37,7 +37,7 @@ class DailyCountSection extends StatelessWidget {
           children: [
             Expanded(
               child: _MetricCard(
-                title: 'Your Distance',
+                title: 'Today\'s Distance',
                 value: '${distanceKm.toStringAsFixed(2)} km',
                 icon: Icons.directions_run_outlined,
                 color: cs.primary,
@@ -118,6 +118,7 @@ class _MetricCard extends StatelessWidget {
                   title,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: AppTheme.muted,
+                    fontSize: 12,
                   ),
                 ),
                 const SizedBox(height: 4),

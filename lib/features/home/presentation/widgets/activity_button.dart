@@ -3,7 +3,8 @@ import 'package:iconsax/iconsax.dart';
 import 'package:pacemate/core/theme/app_theme.dart';
 
 class ActivityButton extends StatefulWidget {
-  const ActivityButton({super.key});
+  const ActivityButton({super.key, required this.totalDistanceKm});
+  final double totalDistanceKm;
 
   @override
   State<ActivityButton> createState() => _ActivityButtonState();
@@ -35,7 +36,7 @@ class _ActivityButtonState extends State<ActivityButton> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Row(
                       spacing: 5,
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -46,7 +47,7 @@ class _ActivityButtonState extends State<ActivityButton> {
                           size: 30,
                           color: AppTheme.onBg,
                         ),
-                        Text(
+                        const Text(
                           'Total Distance',
                           style: TextStyle(
                             color: AppTheme.onBg,
@@ -59,7 +60,7 @@ class _ActivityButtonState extends State<ActivityButton> {
                     const SizedBox(height: 20),
                     Text.rich(
                       TextSpan(
-                        text: '10.25',
+                        text: widget.totalDistanceKm.toStringAsFixed(3),
                         style: TextStyle(
                           color: AppTheme.onBg,
                           fontSize: 55,
@@ -79,7 +80,7 @@ class _ActivityButtonState extends State<ActivityButton> {
                       ),
                     ),
 
-                    Row(
+                    const Row(
                       spacing: 6,
                       mainAxisSize: MainAxisSize.min,
                       children: [
