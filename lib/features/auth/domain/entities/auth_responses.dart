@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:pacemate/features/profile/domain/model/profle_model.dart';
 import '../model/user_model.dart';
 
 /// Authentication response containing user data and tokens
@@ -151,7 +152,7 @@ class EmailCheckResponse extends Equatable {
 class ProfileResponse extends Equatable {
   final bool success;
   final String message;
-  final UserModel? user;
+  final ProfileModel? user;
 
   const ProfileResponse({
     required this.success,
@@ -164,7 +165,7 @@ class ProfileResponse extends Equatable {
     return ProfileResponse(
       success: json['success'] ?? false,
       message: json['message'] ?? '',
-      user: data?['user'] != null ? UserModel.fromJson(data!['user']) : null,
+      user: data?['user'] != null ? ProfileModel.fromJson(data!['user']) : null,
     );
   }
 

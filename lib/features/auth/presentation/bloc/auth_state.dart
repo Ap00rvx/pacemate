@@ -25,6 +25,7 @@ class GoogleSignupData extends Equatable {
 class AuthState extends Equatable {
   final AuthStatus status;
   final UserModel? user;
+  final ProfileModel? profile;
   final String? message;
   final bool isNewUser;
   final GoogleSignupData? googleSignupData;
@@ -33,6 +34,7 @@ class AuthState extends Equatable {
   const AuthState({
     this.status = AuthStatus.initial,
     this.user,
+    this.profile,
     this.message,
     this.isNewUser = false,
     this.googleSignupData,
@@ -44,6 +46,7 @@ class AuthState extends Equatable {
     UserModel? user,
     String? message,
     bool? isNewUser,
+    ProfileModel? profile,
     GoogleSignupData? googleSignupData,
     bool? emailExists,
   }) {
@@ -54,6 +57,7 @@ class AuthState extends Equatable {
       isNewUser: isNewUser ?? this.isNewUser,
       googleSignupData: googleSignupData,
       emailExists: emailExists,
+      profile: profile ?? this.profile,
     );
   }
 

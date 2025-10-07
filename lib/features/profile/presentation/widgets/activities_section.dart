@@ -5,12 +5,12 @@ import 'package:pacemate/core/router/app_router.dart';
 import 'package:pacemate/core/router/route_names.dart';
 import 'package:pacemate/core/theme/app_theme.dart';
 import 'package:pacemate/features/activities/presentation/bloc/activity_bloc.dart';
-import 'package:pacemate/features/auth/domain/model/user_model.dart';
+import 'package:pacemate/features/profile/domain/model/profle_model.dart';
 import 'package:pacemate/features/tracking/domain/enums/activity_type.dart';
 
 class ActivitiesSection extends StatefulWidget {
   const ActivitiesSection({super.key, required this.user});
-  final UserModel user;
+  final ProfileModel user;
 
   @override
   State<ActivitiesSection> createState() => _ActivitiesSectionState();
@@ -18,6 +18,12 @@ class ActivitiesSection extends StatefulWidget {
 
 class _ActivitiesSectionState extends State<ActivitiesSection> {
   bool _fetched = false;
+  String getBmiCategory(double bmi) {
+    if (bmi < 18.5) return 'Underweight';
+    if (bmi < 24.9) return 'Normal weight';
+    if (bmi < 29.9) return 'Overweight';
+    return 'Obesity';
+  }
 
   @override
   void didChangeDependencies() {
@@ -46,7 +52,7 @@ class _ActivitiesSectionState extends State<ActivitiesSection> {
           final totalDurationSec =
               stats?.totalDuration ?? widget.user.totalTime;
           final bmiVal = widget.user.bmi;
-          final bmiCategory = widget.user.bmiCategory;
+          final bmiCategory = getBmiCategory(bmiVal ?? 0.0);
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,7 +66,7 @@ class _ActivitiesSectionState extends State<ActivitiesSection> {
                   final items = <(String, String, IconData)>[
                     (
                       'BMI',
-                      '${bmiVal.toStringAsFixed(1)} ($bmiCategory)',
+                      '${bmiVal?.toStringAsFixed(1)} ($bmiCategory)',
                       Iconsax.health,
                     ),
                     (

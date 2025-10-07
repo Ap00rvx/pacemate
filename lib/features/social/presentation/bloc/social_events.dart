@@ -26,3 +26,11 @@ class RespondFriendEvent extends SocialEvent {
   final bool accept;
   const RespondFriendEvent(this.requesterId, this.accept);
 }
+
+class FetchFriendRequestsEvent extends SocialEvent {
+  const FetchFriendRequestsEvent();
+}
+
+class FetchFriendsListEvent extends SocialEvent {
+  const FetchFriendsListEvent();
+}

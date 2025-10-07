@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:pacemate/features/profile/domain/model/profle_model.dart';
 import '../../domain/entities/auth_requests.dart';
 import '../../domain/usecases/auth_usecases.dart';
 import '../../domain/model/user_model.dart';
@@ -71,7 +72,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(
             state.copyWith(
               status: AuthStatus.authenticated,
-              user: profileResponse.user,
+              profile: profileResponse.user,
             ),
           );
         } else {
@@ -280,7 +281,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final response = await _getProfileUseCase(const NoParams());
 
       if (response.success && response.user != null) {
-        emit(state.copyWith(user: response.user, message: response.message));
+        emit(state.copyWith(message: response.message,profile: response.user));
       } else {
         emit(
           state.copyWith(status: AuthStatus.error, message: response.message),
@@ -321,7 +322,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(
           state.copyWith(
             status: AuthStatus.authenticated,
-            user: response.user,
+            profile: response.user,
             message: 'Profile updated successfully',
           ),
         );

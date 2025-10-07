@@ -17,18 +17,49 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-class _ProfileView extends StatelessWidget {
+class _ProfileView extends StatefulWidget {
   const _ProfileView();
 
   @override
+  State<_ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends State<_ProfileView> {
+  @override
+  @override
+  void initState() {
+    super.initState();
+    context.read<AuthBloc>().add(const GetProfileEvent());
+  }
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
+        if (state.status == AuthStatus.error) {
+          return Column(
+            spacing: 30,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                state.message ?? 'An error occurred',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              // retry button
+              ElevatedButton(
+                onPressed: () {
+                  context.read<AuthBloc>().add(const GetProfileEvent());
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          );
+        }
         if (state.status == AuthStatus.loading) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (state.status == AuthStatus.authenticated && state.user != null) {
-          final u = state.user!;
+        if (state.status == AuthStatus.authenticated && state.profile != null) {
+          final u = state.profile!;
           return Scaffold(
             body: RefreshIndicator(
               onRefresh: () async {
@@ -46,7 +77,7 @@ class _ProfileView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     HeaderSection(user: u),
-                    ActivitiesSection(user: u),
+                    ActivitiesSection(user: state.profile!),
                     const SizedBox(height: 12),
                     LogoutButton(),
                   ],

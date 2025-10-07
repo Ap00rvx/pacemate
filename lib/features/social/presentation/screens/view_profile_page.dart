@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pacemate/core/theme/app_theme.dart';
 import 'package:pacemate/features/social/presentation/bloc/social_bloc.dart';
+import 'package:pacemate/features/social/presentation/widgets/activity_stats.dart';
+import 'package:pacemate/features/social/presentation/widgets/header.dart';
 
 class ViewProfilePage extends StatefulWidget {
   const ViewProfilePage({super.key, required this.userId});
@@ -21,7 +23,8 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       body: BlocBuilder<SocialBloc, SocialState>(
         builder: (context, state) {
           if (state.profileStatus == SocialStatus.loading) {
@@ -31,62 +34,50 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
           if (u == null) {
             return const Center(child: Text('User not found'));
           }
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              HeaderSection(user: u, isFriend: state.isFriend),
+              ActivityStats(user: u),
+              SizedBox(height: 20),
+              if (state.isFriend)
+                Container()
+              else
+                Column(
                   children: [
-                    CircleAvatar(
-                      radius: 36,
-                      backgroundColor: AppTheme.surfaceVariant,
-                      backgroundImage:
-                          (u.avatar != null && u.avatar!.isNotEmpty)
-                          ? NetworkImage(u.avatar!)
-                          : null,
-                      child: (u.avatar == null || u.avatar!.isEmpty)
-                          ? Text(
-                              u.fullname.isNotEmpty
-                                  ? u.fullname[0].toUpperCase()
-                                  : '',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.primary,
-                                fontSize: 24,
-                              ),
-                            )
-                          : null,
+                    Row(
+                      spacing: 10,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.calendar_month,
+                          color: AppTheme.primaryLight,
+                          size: 16,
+                        ),
+                        Text(
+                          "Joined on ${u.createdAt?.toLocal().toString().split(' ').first}",
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppTheme.primaryLight),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            u.fullname,
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(fontWeight: FontWeight.w700),
-                          ),
-                          if (u.location != null && u.location!.isNotEmpty)
-                            Text(u.location!),
-                        ],
+                    const SizedBox(height: 15),
+                    const Divider(),
+                    const SizedBox(height: 15),
+                    Center(
+                      child: Text(
+                        "To View Full Profile,\n Add ${u.fullname} as Friend",
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.muted,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-                if (state.isFriend)
-                  const Text('You are friends')
-                else
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<SocialBloc>().add(AddFriendEvent(u.id));
-                    },
-                    child: const Text('Add friend'),
-                  ),
-              ],
-            ),
+            ],
           );
         },
       ),

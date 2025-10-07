@@ -2,8 +2,10 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/leaderboard_entry.dart';
+import '../../domain/entities/friend.dart';
 import '../../domain/enums/leaderboard_category.dart';
 import '../../domain/repositories/leaderboard_repository.dart';
+import '../../domain/entities/leaderboard_models.dart';
 
 part 'leaderboard_state.dart';
 
@@ -14,11 +16,25 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
 
   Future<void> load() async {
     emit(state.copyWith(loading: true));
-    final categories = LeaderboardCategory.values;
+    // Fetch real leaderboard from backend
+    final data = await _repo.fetchLeaderboard();
+    // For backward-compat UI tabs, fill monthlyDistance from global leaderboard
     final map = <LeaderboardCategory, List<LeaderboardEntry>>{};
-    for (final c in categories) {
-      map[c] = await _repo.fetchCategory(c);
-    }
+    map[LeaderboardCategory.monthlyDistance] = data.globalLeaderboard
+        .map(
+          (e) => LeaderboardEntry(
+            friend: Friend(
+              id: e.user.id,
+              name: e.user.name,
+              avatarUrl: e.user.avatarUrl,
+            ),
+            category: LeaderboardCategory.monthlyDistance,
+            value: e.distanceKm,
+          ),
+        )
+        .toList();
+
+    // Pick topper based on available map
     final topper = _pickTopper(map);
     emit(
       state.copyWith(
@@ -26,6 +42,7 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
         byCategory: map,
         topper: topper,
         message: _motivation(topper),
+        data: data,
       ),
     );
   }

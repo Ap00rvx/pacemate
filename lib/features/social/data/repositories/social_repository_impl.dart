@@ -18,4 +18,10 @@ class SocialRepositoryImpl implements SocialRepository {
 
   @override
   Future<ViewProfile> viewProfile(String id) => remote.viewProfile(id);
+
+  @override
+  Future<List<SocialUser>> getFriendRequests() => remote.friendRequests();
+
+  @override
+  Future<List<SocialUser>> getFriendsList() => remote.friendsList();
 }

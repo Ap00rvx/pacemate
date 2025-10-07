@@ -6,7 +6,6 @@ import 'package:logger/logger.dart';
 import 'package:pacemate/core/router/app_router.dart';
 import 'package:pacemate/core/router/route_names.dart';
 import 'package:pacemate/core/widgets/logo_place.dart';
-import 'package:pacemate/features/auth/presentation/widgets/google_auth_button.dart';
 import '../bloc/auth_bloc.dart';
 
 class AuthPage extends StatefulWidget {
@@ -187,11 +186,7 @@ class _AuthPageViewState extends State<_AuthPageView> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      GoogleButton(
-                        onPressed: state.status == AuthStatus.loading
-                            ? () {}
-                            : _onGooglePressed,
-                      ),
+                    
 
                       // Email sign up
                       SizedBox(

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax/iconsax.dart';
 
-import '../../../../leaderboard/data/fake_leaderboard_repository.dart';
+// import '../../../../leaderboard/data/fake_leaderboard_repository.dart';
+import '../../../../leaderboard/data/leaderboard_repository_impl.dart';
+import '../../../../leaderboard/data/leaderboard_remote_datasource.dart';
 import '../../../../leaderboard/domain/entities/leaderboard_entry.dart';
 import '../../../../leaderboard/domain/enums/leaderboard_category.dart';
 import '../../../../leaderboard/presentation/bloc/leaderboard_cubit.dart';
@@ -14,7 +16,9 @@ class LeaderboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final categories = LeaderboardCategory.values;
     return BlocProvider(
-      create: (_) => LeaderboardCubit(FakeLeaderboardRepository())..load(),
+      create: (_) => LeaderboardCubit(
+        LeaderboardRepositoryImpl(remote: LeaderboardRemoteDataSource()),
+      )..load(),
       child: BlocBuilder<LeaderboardCubit, LeaderboardState>(
         builder: (context, state) {
           if (state.loading && state.byCategory.isEmpty) {
@@ -35,6 +39,46 @@ class LeaderboardPage extends StatelessWidget {
                       topper: state.topper,
                     ),
                   ),
+                  if (state.data?.myGlobalRankDistance != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.secondaryContainer,
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(20),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Iconsax.ranking, size: 16),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'My global rank: ${state.data!.myGlobalRankDistance}',
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  if ((state.data?.friendsLeaderboard.isNotEmpty ?? false))
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: _FriendsLeaderboardSection(
+                        entries: state.data!.friendsLeaderboard,
+                      ),
+                    ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: TabBar(
@@ -42,6 +86,13 @@ class LeaderboardPage extends StatelessWidget {
                       tabs: [for (final c in categories) Tab(text: c.label)],
                     ),
                   ),
+                  if ((state.data?.globalLeaderboard.isNotEmpty ?? false))
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: _GlobalLeaderboardSection(
+                        entries: state.data!.globalLeaderboard,
+                      ),
+                    ),
                   const SizedBox(height: 8),
                   Expanded(
                     child: TabBarView(
@@ -245,5 +296,93 @@ String _formatByCategory(LeaderboardCategory c, double v) {
       return '${v.round()} days';
     case LeaderboardCategory.monthlyDistance:
       return '${v.toStringAsFixed(1)} km';
+  }
+}
+
+class _FriendsLeaderboardSection extends StatelessWidget {
+  const _FriendsLeaderboardSection({required this.entries});
+  final List<dynamic> entries; // List<LeaderboardDistanceEntry>
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Friends Leaderboard',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...entries.take(5).map((e) {
+          final name = e.user.name as String;
+          final valueStr = '${e.distanceKm.toStringAsFixed(1)} km';
+          final rank = e.rank;
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                if (rank != null)
+                  Text(
+                    '#$rank',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                if (rank != null) const SizedBox(width: 8),
+                Expanded(child: Text(name, style: theme.textTheme.bodyMedium)),
+                Text(valueStr, style: theme.textTheme.bodyMedium),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class _GlobalLeaderboardSection extends StatelessWidget {
+  const _GlobalLeaderboardSection({required this.entries});
+  final List<dynamic> entries; // List<LeaderboardDistanceEntry>
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Global Leaderboard',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...entries.take(5).map((e) {
+          final name = e.user.name as String;
+          final valueStr = '${e.distanceKm.toStringAsFixed(1)} km';
+          final rank = e.rank;
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                if (rank != null)
+                  Text(
+                    '#$rank',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                if (rank != null) const SizedBox(width: 8),
+                Expanded(child: Text(name, style: theme.textTheme.bodyMedium)),
+                Text(valueStr, style: theme.textTheme.bodyMedium),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
   }
 }

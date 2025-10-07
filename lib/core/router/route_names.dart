@@ -9,5 +9,6 @@ class RouteNames {
   String activityDetail = '/activity-detail';
   String viewProfile = '/view-profile';
   String searchUsers = '/search-users';
+  String friendRequests = '/friend-requests';
   String init = "/";
 }

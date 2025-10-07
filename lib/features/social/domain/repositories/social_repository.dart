@@ -5,4 +5,6 @@ abstract class SocialRepository {
   Future<ViewProfile> viewProfile(String id);
   Future<void> addFriend(String friendId);
   Future<void> respondToFriendRequest(String requesterId, bool accept);
+  Future<List<SocialUser>> getFriendRequests();
+  Future<List<SocialUser>> getFriendsList();
 }

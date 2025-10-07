@@ -131,6 +131,7 @@ class AuthRemoteDataSource {
         e.response?.statusCode,
       );
     } catch (e) {
+      print(e);
       throw AuthException('Unexpected error while getting profile');
     }
   }

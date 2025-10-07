@@ -13,6 +13,7 @@ import 'package:pacemate/features/activities/presentation/screens/activity_detai
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pacemate/features/social/presentation/screens/view_profile_page.dart';
 import 'package:pacemate/features/social/presentation/screens/search_users_page.dart';
+import 'package:pacemate/features/social/presentation/screens/friend_requests_page.dart';
 import 'package:pacemate/features/social/social_di.dart';
 
 class AppRouter {
@@ -136,6 +137,20 @@ class AppRouter {
           child: BlocProvider(
             create: (_) => SocialDI.getBloc(),
             child: const SearchUsersPage(),
+          ),
+          transitionsBuilder: defaultPageTransition,
+          transitionDuration: const Duration(milliseconds: 350),
+          reverseTransitionDuration: const Duration(milliseconds: 250),
+        ),
+      ),
+      GoRoute(
+        path: _routeNames.friendRequests,
+        name: 'friendRequests',
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          key: state.pageKey,
+          child: BlocProvider(
+            create: (_) => SocialDI.getBloc(),
+            child: const FriendRequestsPage(),
           ),
           transitionsBuilder: defaultPageTransition,
           transitionDuration: const Duration(milliseconds: 350),

@@ -25,3 +25,15 @@ class RespondFriendUseCase {
   Future<void> call(String requesterId, bool accept) =>
       repo.respondToFriendRequest(requesterId, accept);
 }
+
+class GetFriendRequestsUseCase {
+  final SocialRepository repo;
+  GetFriendRequestsUseCase(this.repo);
+  Future<List<SocialUser>> call() => repo.getFriendRequests();
+}
+
+class GetFriendsListUseCase {
+  final SocialRepository repo;
+  GetFriendsListUseCase(this.repo);
+  Future<List<SocialUser>> call() => repo.getFriendsList();
+}

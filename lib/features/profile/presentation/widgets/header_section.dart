@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:pacemate/core/theme/app_theme.dart';
+import 'package:pacemate/core/router/app_router.dart';
+import 'package:pacemate/core/router/route_names.dart';
 import 'package:pacemate/core/widgets/overlay.dart';
-import 'package:pacemate/features/auth/domain/model/user_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pacemate/features/auth/domain/model/user_model.dart';
 import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:pacemate/features/profile/domain/model/profle_model.dart';
 
 class HeaderSection extends StatefulWidget {
   const HeaderSection({super.key, required this.user});
-  final UserModel user;
+  final ProfileModel user;
 
   @override
   State<HeaderSection> createState() => _HeaderSectionState();
@@ -148,13 +151,99 @@ class _HeaderSectionState extends State<HeaderSection> {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      "Friends - ${widget.user.friends.length.toInt()}",
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppTheme.onBg,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w400,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            // show bottom sheet with friends list
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (context) {
+                                return FractionallySizedBox(
+                                  heightFactor: 0.75,
+                                  child: Scaffold(
+                                    appBar: AppBar(
+                                      title: const Text('Friends'),
+                                      backgroundColor: AppTheme.bg,
+                                      foregroundColor: AppTheme.onBg,
+                                      elevation: 1,
+                                    ),
+                                    body: widget.user.friends.isEmpty
+                                        ? const Center(
+                                            child: Text('No friends yet'),
+                                          )
+                                        : ListView.separated(
+                                            itemCount:
+                                                widget.user.friends.length,
+                                            separatorBuilder:
+                                                (context, index) =>
+                                                    const Divider(),
+                                            itemBuilder: (context, index) {
+                                              final friend =
+                                                  widget.user.friends[index];
+                                              return ListTile(
+                                                leading: CircleAvatar(
+                                                  backgroundImage:
+                                                      friend.avatar != null
+                                                          ? NetworkImage(
+                                                              friend.avatar!)
+                                                          : null,
+                                                  child: friend.avatar == null
+                                                      ? Text(
+                                                          friend.fullname[0]
+                                                              .toUpperCase(),
+                                                        )
+                                                      : null,
+                                                ),
+                                                title: Text(friend.fullname),
+                                               
+                                                onTap: () {
+                                                  Navigator.pop(context);
+                                                  // AppRouter.push(
+                                                  //   RouteNames().userProfile,
+                                                  //   context,
+                                                  //   args: friend,
+                                                  // );
+                                                },
+                                              );
+                                            },
+                                          ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          child: Text(
+                            "Friends - ${widget.user.friends.length.toInt()}",
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: AppTheme.onBg,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                          ),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            fixedSize: Size.fromHeight(30),
+                            backgroundColor: AppTheme.muted.withAlpha(30),
+                          ),
+                          onPressed: () {
+                            AppRouter.push(
+                              RouteNames().friendRequests,
+                              context,
+                            );
+                          },
+                          child: const Text(
+                            "View Friend Requests",
+                            style: TextStyle(fontSize: 11),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 2),
                   ],
@@ -194,7 +283,7 @@ class _HeaderSectionState extends State<HeaderSection> {
                                 )
                               : Center(
                                   child: Text(
-                                    widget.user.initials,
+                                    widget.user.fullname[0].toUpperCase(),
                                     textAlign: TextAlign.center,
                                     style: Theme.of(context)
                                         .textTheme

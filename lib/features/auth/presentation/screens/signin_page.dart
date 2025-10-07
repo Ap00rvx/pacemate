@@ -35,10 +35,6 @@ class _SignInPageState extends State<SignInPage> {
     }
   }
 
-  void _google() {
-    // TODO: Implement Google sign-in
-    debugPrint('Google sign-in');
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,23 +132,23 @@ class _SignInPageState extends State<SignInPage> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: _google,
-                        icon: Image.asset(
-                          "assets/images/google.png",
-                          width: 20,
-                          height: 20,
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: cs.outline),
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                        ),
-                        label: const Text('Continue with Google'),
-                      ),
-                    ),
+                    // const SizedBox(height: 12),
+                    // SizedBox(
+                    //   width: double.infinity,
+                    //   child: OutlinedButton.icon(
+                    //     onPressed: _google,
+                    //     icon: Image.asset(
+                    //       "assets/images/google.png",
+                    //       width: 20,
+                    //       height: 20,
+                    //     ),
+                    //     style: OutlinedButton.styleFrom(
+                    //       side: BorderSide(color: cs.outline),
+                    //       padding: const EdgeInsets.symmetric(vertical: 18),
+                    //     ),
+                    //     label: const Text('Continue with Google'),
+                    //   ),
+                    // ),
 
                     const SizedBox(height: 16),
                     Row(
