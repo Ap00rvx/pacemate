@@ -141,11 +141,47 @@ class AuthRemoteDataSource {
     String token,
   ) async {
     try {
-      final response = await _networkClient.client.put(
-        '/api/users/profile',
-        data: request.toJson(),
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final json = request.toJson();
+      final avatar = json.remove('avatar');
+
+      Response response;
+      // If avatar looks like a local file path (not http/https/data uri),
+      // use multipart/form-data so backend multer can populate req.file
+      if (avatar is String &&
+          avatar.isNotEmpty &&
+          !(avatar.startsWith('http://') ||
+              avatar.startsWith('https://') ||
+              avatar.startsWith('data:'))) {
+        final form = FormData();
+        // Append non-null fields
+        json.forEach((key, value) {
+          if (value != null) form.fields.add(MapEntry(key, value.toString()));
+        });
+        form.files.add(
+          MapEntry(
+            'avatar',
+            await MultipartFile.fromFile(avatar, filename: 'avatar.jpg'),
+          ),
+        );
+        response = await _networkClient.client.put(
+          '/api/users/profile',
+          data: form,
+          options: Options(
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'multipart/form-data',
+            },
+          ),
+        );
+      } else {
+        // Send JSON; server will treat avatar as URL/base64 if provided
+        if (avatar != null) json['avatar'] = avatar;
+        response = await _networkClient.client.put(
+          '/api/users/profile',
+          data: json,
+          options: Options(headers: {'Authorization': 'Bearer $token'}),
+        );
+      }
 
       if (response.statusCode == 200) {
         return ProfileResponse.fromJson(response.data);
@@ -162,7 +198,6 @@ class AuthRemoteDataSource {
     }
   }
 
-  
   /// Check if email exists
   Future<EmailCheckResponse> checkEmailExists(String email) async {
     try {

@@ -2,6 +2,23 @@ import 'package:equatable/equatable.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:pacemate/features/tracking/domain/enums/activity_type.dart';
 
+class ActivityUser extends Equatable {
+  final String id;
+  final String fullname;
+  final String? avatar; // can be null | string
+  final double? bmi; // optional helper if provided
+
+  const ActivityUser({
+    required this.id,
+    required this.fullname,
+    this.avatar,
+    this.bmi,
+  });
+
+  @override
+  List<Object?> get props => [id, fullname, avatar, bmi];
+}
+
 class Activity extends Equatable {
   final String id;
   final ActivityType type;
@@ -9,6 +26,7 @@ class Activity extends Equatable {
   final double distance; // meters
   final int calories;
   final String userId;
+  final ActivityUser? user; // optional expanded user object
   final List<LatLng> route; // optional path
   final DateTime createdAt;
   final double? elevation;
@@ -25,6 +43,7 @@ class Activity extends Equatable {
     required this.distance,
     required this.calories,
     required this.userId,
+    this.user,
     required this.route,
     required this.createdAt,
     this.elevation,
@@ -43,6 +62,7 @@ class Activity extends Equatable {
     distance,
     calories,
     userId,
+    user,
     route,
     createdAt,
     elevation,

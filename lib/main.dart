@@ -6,6 +6,9 @@ import 'package:pacemate/core/router/app_router.dart';
 import 'package:pacemate/features/activities/activities_di.dart';
 import 'package:pacemate/features/auth/auth_di.dart';
 import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:pacemate/features/home/presentation/bloc/search_cubit.dart';
+import 'package:pacemate/features/social/presentation/bloc/social_bloc.dart';
+import 'package:pacemate/features/social/social_di.dart';
 import 'package:pacemate/firebase_options.dart';
 import 'core/theme/app_theme.dart';
 
@@ -15,9 +18,7 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const RootApp());
 }
 
@@ -29,11 +30,12 @@ class RootApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => AuthDI.getAuthBloc()..add(const InitialAuthEvent()),
+          create: (context) =>
+              AuthDI.getAuthBloc()..add(const InitialAuthEvent()),
         ),
-        BlocProvider(
-          create: (context) => ActivitiesDI.getBloc(),
-        ),
+        BlocProvider(create: (context) => ActivitiesDI.getBloc()),
+        BlocProvider(create: (context) => SocialDI.getBloc()),
+        BlocProvider(create: (context) => SearchCubit()),
       ],
       child: MaterialApp.router(
         title: 'Pace Mate',

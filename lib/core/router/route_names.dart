@@ -7,5 +7,7 @@ class RouteNames {
   String signup = '/signup';
   String signupDetails = '/signup-details';
   String activityDetail = '/activity-detail';
+  String viewProfile = '/view-profile';
+  String searchUsers = '/search-users';
   String init = "/";
 }

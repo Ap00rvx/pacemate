@@ -170,10 +170,13 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     emit(state.copyWith(feedStatus: ActivityStatus.loading));
     try {
       final result = await getFeed(page: event.page, limit: event.limit);
+      final merged = event.page <= 1
+          ? result.activities
+          : [...state.feed, ...result.activities];
       emit(
         state.copyWith(
           feedStatus: ActivityStatus.success,
-          feed: result.activities,
+          feed: merged,
           feedPagination: result.pagination,
         ),
       );

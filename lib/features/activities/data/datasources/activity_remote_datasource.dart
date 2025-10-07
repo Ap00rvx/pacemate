@@ -43,6 +43,36 @@ class ActivityRemoteDataSource {
       _ => ActivityType.running,
     };
 
+    // Map optional expanded user details
+    ent.ActivityUser? activityUser;
+    if (user is Map) {
+      final id = (user['_id'] ?? user['id'] ?? '').toString();
+      final fullname = (user['fullname'] ?? '').toString();
+      final avatarVal = user['avatar'];
+      String? avatar;
+      if (avatarVal is String && avatarVal.isNotEmpty) {
+        avatar = avatarVal;
+      } else {
+        avatar = null;
+      }
+      double? bmi;
+      if (user['bmi'] != null) {
+        final v = user['bmi'];
+        if (v is num) {
+          bmi = v.toDouble();
+        } else if (v is String) {
+          final parsed = double.tryParse(v);
+          bmi = parsed?.isNaN == true ? null : parsed;
+        }
+      }
+      activityUser = ent.ActivityUser(
+        id: id,
+        fullname: fullname,
+        avatar: avatar,
+        bmi: bmi,
+      );
+    }
+
     return ent.Activity(
       id: (a['_id'] ?? a['id']).toString(),
       type: type,
@@ -51,6 +81,7 @@ class ActivityRemoteDataSource {
       calories: (a['calories'] as num).toInt(),
       userId: (user is Map ? (user['_id'] ?? user['id'] ?? '') : user)
           .toString(),
+      user: activityUser,
       route: routeList,
       createdAt: DateTime.parse(a['createdAt'] as String),
       elevation: a['elevation'] == null

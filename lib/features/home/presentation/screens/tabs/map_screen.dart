@@ -9,8 +9,6 @@ import 'package:pacemate/core/widgets/logo_place.dart';
 import 'package:pacemate/core/router/app_router.dart';
 import 'package:pacemate/core/router/route_names.dart';
 import 'package:pacemate/features/activities/presentation/bloc/activity_bloc.dart';
-import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
-
 import '../../../../tracking/domain/entities/tracking_point.dart';
 import '../../../../tracking/domain/enums/activity_type.dart';
 import '../../../../tracking/presentation/bloc/location_cubit.dart';
@@ -374,7 +372,7 @@ class _MapScreenState extends State<MapScreen> {
                             onStop: () async {
                               // Persist activity via API and then stop locally
                               final actBloc = context.read<ActivityBloc>();
-                              final authBloc = context.read<AuthBloc>();
+                      
                               final s = cubit.state;
                               if (s.activityType != null &&
                                   s.durationSeconds > 0 &&
