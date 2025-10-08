@@ -8,6 +8,7 @@ import 'package:pacemate/core/theme/app_theme.dart';
 import 'package:pacemate/core/utils/times_ago.dart';
 import 'package:pacemate/features/activities/domain/entities/activity.dart';
 import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:pacemate/features/activities/presentation/bloc/activity_bloc.dart';
 import 'package:pacemate/features/home/presentation/bloc/bottom_nav_cubit.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -317,7 +318,7 @@ class _FeedCardState extends State<FeedCard> {
                                 height: 8.0,
                                 margin: const EdgeInsets.symmetric(
                                   vertical: 10.0,
-                                  horizontal: 2.0,
+                                  horizontal: 5.0,
                                 ),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
@@ -411,9 +412,40 @@ class _FeedCardState extends State<FeedCard> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.thumb_up_alt_outlined, size: 24),
+                  Builder(
+                    builder: (context) {
+                      final likes = widget.activity.likes;
+                      final myId =
+                          context.read<AuthBloc>().state.user?.id ??
+                          context.read<AuthBloc>().state.profile?.id ??
+                          "";
+                      print(myId);
+                      final isLiked = myId != "" && likes.contains(myId);
+                      final count = likes.length;
+                      return Row(
+                        children: [
+                          IconButton(
+                            onPressed: myId == ""
+                                ? null
+                                : () {
+                                    context.read<ActivityBloc>().add(
+                                      ToggleLikeEvent(widget.activity.id),
+                                    );
+                                  },
+                            icon: Icon(
+                              isLiked
+                                  ? Icons.favorite_rounded
+                                  : Icons.favorite_border_rounded,
+                              color: isLiked
+                                  ? Colors.redAccent
+                                  : Theme.of(context).iconTheme.color,
+                              size: 30,
+                            ),
+                          ),
+                          Text('$count'),
+                        ],
+                      );
+                    },
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,

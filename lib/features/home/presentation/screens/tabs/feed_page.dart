@@ -5,7 +5,10 @@ import 'package:pacemate/core/router/app_router.dart';
 import 'package:pacemate/core/router/route_names.dart';
 import 'package:pacemate/core/theme/app_theme.dart';
 import 'package:pacemate/features/activities/presentation/bloc/activity_bloc.dart';
+import 'package:pacemate/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:pacemate/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:pacemate/features/home/presentation/widgets/feed_card.dart';
+import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
 
 class FeedPage extends StatefulWidget {
   const FeedPage({super.key});
@@ -244,15 +247,31 @@ class _FeedPageState extends State<FeedPage> {
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate((context, i) {
                       final a = items[i];
+                     
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: FeedCard(
-                          activity: a,
-                          onTap: () => AppRouter.push(
-                            RouteNames().activityDetail,
-                            context,
-                            queryParams: {'id': a.id},
-                          ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FeedCard(
+                              activity: a,
+                              onTap: () {
+                                final auth = context.read<AuthBloc>().state;
+                                final selfId = auth.user?.id;
+                                final ownerId = a.user?.id ?? a.userId;
+                                final isMine =
+                                    selfId != null && ownerId == selfId;
+                                AppRouter.push(
+                                  isMine
+                                      ? RouteNames().activityDetail
+                                      : RouteNames().activityView,
+                                  context,
+                                  queryParams: {'id': a.id},
+                                );
+                              },
+                            ),
+                            
+                          ],
                         ),
                       );
                     }, childCount: items.length),

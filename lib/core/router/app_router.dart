@@ -10,6 +10,7 @@ import 'package:pacemate/features/onboarding/presentation/onboarding.dart';
 import 'package:pacemate/features/splash/presentation/splash.dart';
 import 'package:pacemate/features/home/presentation/screens/home_page.dart';
 import 'package:pacemate/features/activities/presentation/screens/activity_detail_page.dart';
+import 'package:pacemate/features/activities/presentation/screens/activity_view_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pacemate/features/social/presentation/screens/view_profile_page.dart';
 import 'package:pacemate/features/social/presentation/screens/search_users_page.dart';
@@ -110,6 +111,19 @@ class AppRouter {
         pageBuilder: (context, state) => CustomTransitionPage<void>(
           key: state.pageKey,
           child: ActivityDetailPage(activityId: (state.extra as Map?)?['id']),
+          transitionsBuilder: defaultPageTransition,
+          transitionDuration: const Duration(milliseconds: 350),
+          reverseTransitionDuration: const Duration(milliseconds: 250),
+        ),
+      ),
+      GoRoute(
+        path: _routeNames.activityView,
+        name: 'activityView',
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          key: state.pageKey,
+          child: ActivityViewPage(
+            activityId: (state.extra as Map?)?['id'] ?? '',
+          ),
           transitionsBuilder: defaultPageTransition,
           transitionDuration: const Duration(milliseconds: 350),
           reverseTransitionDuration: const Duration(milliseconds: 250),

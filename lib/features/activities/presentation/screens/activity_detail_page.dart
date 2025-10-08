@@ -5,7 +5,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:pacemate/core/theme/app_theme.dart';
-import 'package:pacemate/features/activities/domain/usecases/usecases.dart';
 import 'package:pacemate/features/activities/presentation/bloc/activity_bloc.dart';
 import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -243,7 +242,7 @@ class _ActivityDetailPageState extends State<ActivityDetailPage> {
                                   context.read<ActivityBloc>().add(
                                     FetchFeedEvent(),
                                   );
-                                  context.pop();
+                              
                                 },
                                 child:
                                     state.mutateStatus == ActivityStatus.loading
@@ -255,7 +254,7 @@ class _ActivityDetailPageState extends State<ActivityDetailPage> {
                                           color: Colors.white,
                                         ),
                                       )
-                                    : const Text('Continue'),
+                                    : const Text('Save'),
                               );
                             },
                           ),
