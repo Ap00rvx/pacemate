@@ -5,6 +5,7 @@ import 'package:pacemate/core/router/route_names.dart';
 import 'package:pacemate/core/widgets/app_loader.dart';
 import 'package:pacemate/core/widgets/pm_text_field.dart';
 import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:pacemate/features/auth/presentation/widgets/google_auth_button.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -34,7 +35,6 @@ class _SignInPageState extends State<SignInPage> {
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -133,22 +133,7 @@ class _SignInPageState extends State<SignInPage> {
                     ),
                     const SizedBox(height: 12),
                     // const SizedBox(height: 12),
-                    // SizedBox(
-                    //   width: double.infinity,
-                    //   child: OutlinedButton.icon(
-                    //     onPressed: _google,
-                    //     icon: Image.asset(
-                    //       "assets/images/google.png",
-                    //       width: 20,
-                    //       height: 20,
-                    //     ),
-                    //     style: OutlinedButton.styleFrom(
-                    //       side: BorderSide(color: cs.outline),
-                    //       padding: const EdgeInsets.symmetric(vertical: 18),
-                    //     ),
-                    //     label: const Text('Continue with Google'),
-                    //   ),
-                    // ),
+                    GoogleButton(),
 
                     const SizedBox(height: 16),
                     Row(

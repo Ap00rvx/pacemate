@@ -188,7 +188,7 @@ class _FeedCardState extends State<FeedCard> {
                     ? Column(
                         children: [
                           CarouselSlider(
-                            carouselController: carouselController!,
+                            carouselController: carouselController,
                             items: [
                               Image.network(
                                 widget.activity.image!,

@@ -92,10 +92,82 @@ class _FeedPageState extends State<FeedPage> {
           if (items.isEmpty) {
             return RefreshIndicator(
               onRefresh: _refresh,
-              child: ListView(
-                children: const [
-                  SizedBox(height: 120),
-                  Center(child: Text('No feed yet')),
+              child: CustomScrollView(
+                controller: _controller,
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverAppBar(
+                    pinned: true,
+                    expandedHeight: 200,
+                    actionsPadding: const EdgeInsets.only(right: 8),
+                    title: const Text(
+                      'Recent Activities',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.person_add_alt_1_outlined),
+                        onPressed: () {
+                          AppRouter.push(RouteNames().searchUsers, context);
+                        },
+                      ),
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Iconsax.notification4),
+                      ),
+                    ],
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 24.0,
+                        ),
+                        alignment: Alignment.bottomLeft,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppTheme.primary.withAlpha(100),
+                              AppTheme.primary.withAlpha(70),
+                              AppTheme.primary.withAlpha(0),
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [const SizedBox(height: 10)],
+                        ),
+                      ),
+                      collapseMode: CollapseMode.parallax,
+                    ),
+                    elevation: 4,
+                    shadowColor: Colors.black26,
+                  ),
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          children: [
+                            Image.asset("assets/images/no_feed.jpg"),
+                            Text(
+                              'No activities from people you follow yet.\nFind and follow friends to see their activities here!',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                    fontSize: 16,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             );

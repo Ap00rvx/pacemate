@@ -195,6 +195,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
               status: AuthStatus.authenticated,
               user: response.user,
               message: response.message,
+              
             ),
           );
         } else {

@@ -2,6 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/web.dart';
+import 'package:pacemate/core/env/env_service.dart';
 import 'package:pacemate/core/router/app_router.dart';
 import 'package:pacemate/features/activities/activities_di.dart';
 import 'package:pacemate/features/auth/auth_di.dart';
@@ -9,14 +11,23 @@ import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:pacemate/features/home/presentation/bloc/search_cubit.dart';
 import 'package:pacemate/features/social/social_di.dart';
 import 'package:pacemate/firebase_options.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await EnvService.init();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  final String SUPABASE_URL = EnvService().supabaseUrl;
+  final String SUPABASE_ANON_KEY = EnvService().supabaseAnonKey;
+  await Supabase.initialize(url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY).then(
+    (_) {
+      Logger().f("Supabase Initialized SuccessFully");
+    },
+  );
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const RootApp());
 }

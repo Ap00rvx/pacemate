@@ -1,11 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:logger/logger.dart';
 import 'package:pacemate/core/router/app_router.dart';
 import 'package:pacemate/core/router/route_names.dart';
 import 'package:pacemate/core/widgets/logo_place.dart';
+import 'package:pacemate/features/auth/presentation/widgets/google_auth_button.dart';
 import '../bloc/auth_bloc.dart';
 
 class AuthPage extends StatefulWidget {
@@ -69,68 +68,6 @@ class _AuthPageView extends StatefulWidget {
 
 class _AuthPageViewState extends State<_AuthPageView> {
   final _routes = RouteNames();
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
-    clientId:
-        "805163956327-po8rpa88oji5lsldhvj8fl42b85fia25.apps.googleusercontent.com",
-  );
-
-  Future<void> _onGooglePressed() async {
-    try {
-      final GoogleSignInAccount? gUser = await _googleSignIn.signIn().onError((
-        error,
-        stackTrace,
-      ) {
-        Logger().e('Google sign-in error: $error');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Google sign-in failed. Please try again.'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-        return null;
-      });
-      print('Google user: ${gUser?.email}, ${gUser?.id}');
-      if (gUser == null) return; // canceled
-      final GoogleSignInAuthentication gAuth = await gUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        idToken: gAuth.idToken,
-        accessToken: gAuth.accessToken,
-      );
-      final UserCredential userCred = await FirebaseAuth.instance
-          .signInWithCredential(credential);
-      final user = userCred.user;
-      if (!mounted || user == null) return;
-
-      String? googleId;
-      for (final p in user.providerData) {
-        if (p.providerId == 'google.com') {
-          googleId = p.uid;
-          break;
-        }
-      }
-      googleId ??= gUser.id;
-
-      final email = user.email ?? gUser.email;
-
-      context.read<AuthBloc>().add(
-        GoogleCheckEvent(googleId: googleId, email: email),
-      );
-    } catch (e) {
-      try {
-        await FirebaseAuth.instance.signOut();
-        await _googleSignIn.signOut();
-      } catch (_) {}
-      if (!mounted) return;
-      Logger().e('Firebase Google sign-in error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Google sign-in failed. Please try again.'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    }
-  }
 
   void _onEmailSignup() {
     AppRouter.push(_routes.signup, context);
@@ -186,7 +123,7 @@ class _AuthPageViewState extends State<_AuthPageView> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                    
+                      GoogleButton(),
 
                       // Email sign up
                       SizedBox(
