@@ -64,6 +64,17 @@ class FetchFeedEvent extends ActivityEvent {
   const FetchFeedEvent({this.page = 1, this.limit = 10});
 }
 
+class FetchFriendActivitiesEvent extends ActivityEvent {
+  final String friendId;
+  final int page;
+  final int limit;
+  const FetchFriendActivitiesEvent(
+    this.friendId, {
+    this.page = 1,
+    this.limit = 15,
+  });
+}
+
 class CreateActivityEvent extends ActivityEvent {
   final ActivityType type;
   final int duration;

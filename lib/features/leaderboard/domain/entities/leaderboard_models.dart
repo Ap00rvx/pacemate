@@ -37,6 +37,7 @@ class LeaderboardData extends Equatable {
   final List<ent.Activity> myRecentActivities;
   final List<ent.Activity> friendsRecentActivities;
   final int? myGlobalRankDistance;
+  final LeaderboardSummary? mySummary;
 
   const LeaderboardData({
     required this.period,
@@ -45,6 +46,7 @@ class LeaderboardData extends Equatable {
     required this.myRecentActivities,
     required this.friendsRecentActivities,
     required this.myGlobalRankDistance,
+    this.mySummary,
   });
 
   @override
@@ -55,5 +57,37 @@ class LeaderboardData extends Equatable {
     myRecentActivities,
     friendsRecentActivities,
     myGlobalRankDistance,
+    mySummary,
+  ];
+}
+
+class LeaderboardSummary extends Equatable {
+  final int totalActivities;
+  final double totalDistance;
+  final int totalDuration;
+  final int totalCalories;
+  final double averageDistance;
+  final int averageDuration;
+  final double averageCalories;
+
+  const LeaderboardSummary({
+    required this.totalActivities,
+    required this.totalDistance,
+    required this.totalDuration,
+    required this.totalCalories,
+    required this.averageDistance,
+    required this.averageDuration,
+    required this.averageCalories,
+  });
+
+  @override
+  List<Object?> get props => [
+    totalActivities,
+    totalDistance,
+    totalDuration,
+    totalCalories,
+    averageDistance,
+    averageDuration,
+    averageCalories,
   ];
 }

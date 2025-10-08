@@ -18,7 +18,7 @@ class LeaderboardRemoteDataSource {
 
   LeaderboardUser _mapUser(dynamic u) {
     if (u is Map) {
-      final id = (u['_id'] ?? u['id'] ?? '').toString();
+      final id = (u['_id'] ?? u['id'] ?? u['userId'] ?? '').toString();
       final name = (u['fullname'] ?? u['name'] ?? '').toString();
       final avatarRaw = u['avatar'];
       final avatar = avatarRaw is String && avatarRaw.isNotEmpty
@@ -83,12 +83,16 @@ class LeaderboardRemoteDataSource {
 
   LeaderboardDistanceEntry _mapEntry(dynamic e) {
     if (e is Map) {
-      final user = _mapUser(e['user'] ?? e['friend'] ?? e['userId']);
-      // distance may be in meters or km; we assume km if value < 10000, else convert m->km
+      // API for friends/global leaderboard provides flat fields: userId, fullname, avatar?, totalDistance
+      final user = _mapUser({
+        'id': e['userId'],
+        'fullname': e['fullname'],
+        'avatar': e['avatar'],
+      });
       double distance = 0.0;
-      final val = e['distance'] ?? e['value'];
+      final val = e['totalDistance'] ?? e['distance'] ?? e['value'];
       if (val is num) distance = val.toDouble();
-      if (distance > 10000) distance = distance / 1000.0;
+      // values appear to be in km already in sample; keep as-is. If meters, they would be >>1000.
       final rank = (e['rank'] is num) ? (e['rank'] as num).toInt() : null;
       return LeaderboardDistanceEntry(
         user: user,
@@ -101,6 +105,16 @@ class LeaderboardRemoteDataSource {
       distanceKm: 0.0,
     );
   }
+
+  LeaderboardSummary _mapSummary(Map<String, dynamic> s) => LeaderboardSummary(
+    totalActivities: (s['totalActivities'] as num).toInt(),
+    totalDistance: (s['totalDistance'] as num).toDouble(),
+    totalDuration: (s['totalDuration'] as num).toInt(),
+    totalCalories: (s['totalCalories'] as num).toInt(),
+    averageDistance: (s['averageDistance'] as num).toDouble(),
+    averageDuration: (s['averageDuration'] as num).toInt(),
+    averageCalories: (s['averageCalories'] as num).toDouble(),
+  );
 
   Future<LeaderboardData> fetchLeaderboard({
     String period = 'week',
@@ -145,6 +159,9 @@ class LeaderboardRemoteDataSource {
       myRecentActivities: myRecent,
       friendsRecentActivities: friendsRecent,
       myGlobalRankDistance: myRank,
+      mySummary: (data['mySummary'] is Map<String, dynamic>)
+          ? _mapSummary(data['mySummary'] as Map<String, dynamic>)
+          : null,
     );
   }
 }

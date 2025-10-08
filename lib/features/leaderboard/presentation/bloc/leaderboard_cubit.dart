@@ -16,8 +16,8 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
 
   Future<void> load() async {
     emit(state.copyWith(loading: true));
-    // Fetch real leaderboard from backend
-    final data = await _repo.fetchLeaderboard();
+    // Fetch real leaderboard from backend using current period
+    final data = await _repo.fetchLeaderboard(period: state.period);
     // For backward-compat UI tabs, fill monthlyDistance from global leaderboard
     final map = <LeaderboardCategory, List<LeaderboardEntry>>{};
     map[LeaderboardCategory.monthlyDistance] = data.globalLeaderboard
@@ -45,6 +45,13 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
         data: data,
       ),
     );
+  }
+
+  void setPeriod(String period) {
+    if (period == state.period) return;
+    emit(state.copyWith(period: period));
+    // fire and forget; UI shows loading state
+    load();
   }
 
   LeaderboardEntry? _pickTopper(

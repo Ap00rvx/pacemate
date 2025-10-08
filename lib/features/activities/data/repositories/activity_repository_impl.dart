@@ -46,6 +46,11 @@ class ActivityRepositoryImpl implements ActivityRepository {
   }) => remote.getFeed(page: page, limit: limit);
 
   @override
+  Future<({List<Activity> activities, Pagination pagination})>
+  getFriendActivities(String friendId, {int page = 1, int limit = 15}) =>
+      remote.getFriendActivities(friendId, page: page, limit: limit);
+
+  @override
   Future<Activity> createActivity({
     required ActivityType type,
     required int duration,

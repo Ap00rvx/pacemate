@@ -216,6 +216,22 @@ class ActivityRemoteDataSource {
     return (activities: list, pagination: pag);
   }
 
+  Future<({List<ent.Activity> activities, ent.Pagination pagination})>
+  getFriendActivities(String friendId, {int page = 1, int limit = 15}) async {
+    final headers = await _authHeaders();
+    final resp = await _dio.get(
+      '/api/activities/friends/$friendId/activities',
+      queryParameters: {'page': page, 'limit': limit},
+      options: Options(headers: headers.isEmpty ? null : headers),
+    );
+    final data = resp.data['data'];
+    final list = (data['activities'] as List)
+        .map((e) => _mapActivity(e))
+        .toList();
+    final pag = _mapPagination(data['pagination']);
+    return (activities: list, pagination: pag);
+  }
+
   Future<ent.Activity> createActivity({
     required ActivityType type,
     required int duration,
@@ -261,10 +277,29 @@ class ActivityRemoteDataSource {
     Map<String, dynamic> update,
   ) async {
     final headers = await _authHeaders();
+    dynamic dataToSend = update;
+    Options options = Options(headers: headers.isEmpty ? null : headers);
+    // Support multipart if a local file path is provided under 'imageFilePath'
+    try {
+      if (update.containsKey('imageFilePath') &&
+          update['imageFilePath'] is String) {
+        // Build FormData
+        final path = update['imageFilePath'] as String;
+        final form = FormData();
+        for (final entry in update.entries) {
+          if (entry.key == 'imageFilePath') continue;
+          form.fields.add(MapEntry(entry.key, entry.value.toString()));
+        }
+        form.files.add(MapEntry('image', await MultipartFile.fromFile(path)));
+        dataToSend = form;
+        options = options.copyWith(contentType: 'multipart/form-data');
+      }
+    } catch (_) {}
+
     final resp = await _dio.put(
       '/api/activities/$id',
-      data: update,
-      options: Options(headers: headers.isEmpty ? null : headers),
+      data: dataToSend,
+      options: options,
     );
     return _mapActivity(resp.data['data']['activity']);
   }

@@ -23,6 +23,10 @@ class ActivityState extends Equatable {
 
   final String? message;
 
+  // Friend activities view
+  final List<ent.Activity> friendActivities;
+  final ent.Pagination? friendPagination;
+
   const ActivityState({
     this.status = ActivityStatus.initial,
     this.detailStatus = ActivityStatus.initial,
@@ -37,6 +41,8 @@ class ActivityState extends Equatable {
     this.feedPagination,
     this.lastMutated,
     this.message,
+    this.friendActivities = const [],
+    this.friendPagination,
   });
 
   ActivityState copyWith({
@@ -53,6 +59,8 @@ class ActivityState extends Equatable {
     ent.Pagination? feedPagination,
     ent.Activity? lastMutated,
     String? message,
+    List<ent.Activity>? friendActivities,
+    ent.Pagination? friendPagination,
   }) => ActivityState(
     status: status ?? this.status,
     detailStatus: detailStatus ?? this.detailStatus,
@@ -67,6 +75,8 @@ class ActivityState extends Equatable {
     feedPagination: feedPagination ?? this.feedPagination,
     lastMutated: lastMutated ?? this.lastMutated,
     message: message,
+    friendActivities: friendActivities ?? this.friendActivities,
+    friendPagination: friendPagination ?? this.friendPagination,
   );
 
   @override
@@ -84,5 +94,7 @@ class ActivityState extends Equatable {
     feedPagination,
     lastMutated,
     message,
+    friendActivities,
+    friendPagination,
   ];
 }

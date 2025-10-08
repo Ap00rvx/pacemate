@@ -11,4 +11,16 @@ class LeaderboardEntry {
     required this.category,
     required this.value,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'friend': {
+        'id': friend.id,
+        'fullname': friend.name,
+        'avatar': friend.avatarUrl,
+      },
+      'category': category.toString().split('.').last,
+      'value': value,
+    };
+  }
 }

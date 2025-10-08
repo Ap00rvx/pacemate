@@ -6,6 +6,7 @@ import 'package:pacemate/core/theme/app_theme.dart';
 import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:pacemate/features/profile/presentation/widgets/activities_section.dart';
 import 'package:pacemate/features/activities/presentation/bloc/activity_bloc.dart';
+import 'package:pacemate/features/profile/presentation/widgets/body_metrics.dart';
 import 'package:pacemate/features/profile/presentation/widgets/header_section.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -31,6 +32,21 @@ class _ProfileViewState extends State<_ProfileView> {
     super.initState();
     context.read<AuthBloc>().add(const GetProfileEvent());
   }
+
+  void _showBodyMetrics(BuildContext context, dynamic user) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return BodyMetricsSheet(user: user);
+      },
+    );
+  }
+
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
@@ -77,6 +93,23 @@ class _ProfileViewState extends State<_ProfileView> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     HeaderSection(user: u),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: ElevatedButton.icon(
+                        icon: const Icon(
+                          Icons.monitor_heart_outlined,
+                          size: 18,
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary,
+                          foregroundColor: AppTheme.onBg,
+                          minimumSize: const Size.fromHeight(44),
+                        ),
+                        onPressed: () => _showBodyMetrics(context, u),
+                        label: const Text('Body metrics & calories'),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
                     ActivitiesSection(user: state.profile!),
                     const SizedBox(height: 12),
                     LogoutButton(),

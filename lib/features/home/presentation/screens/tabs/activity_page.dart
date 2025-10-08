@@ -56,7 +56,7 @@ class _ActivityPageState extends State<ActivityPage> {
               final startOfWeek = startOfDay.subtract(
                 Duration(days: startOfDay.weekday % 7),
               ); // Sunday start
-              // Aggregate today's distance (km) and calories, and weekly calories
+              
               double todaysDistanceKm = 0.0;
               int todaysCalories = 0;
               final weekCals = List<int>.filled(7, 0);

@@ -6,7 +6,7 @@ import 'package:pacemate/features/home/presentation/screens/tabs/map_screen.dart
 import '../../presentation/bloc/bottom_nav_cubit.dart';
 import 'tabs/activity_page.dart';
 import 'tabs/feed_page.dart';
-import 'tabs/leaderboard_page.dart';
+import '../../../leaderboard/presentation/screens/leaderboard_page.dart';
 import '../../../profile/presentation/profile_page.dart';
 
 class HomePage extends StatelessWidget {

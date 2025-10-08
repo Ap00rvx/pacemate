@@ -14,6 +14,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
   final ListUserActivities listUserActivities;
   final GetStats getStats;
   final GetFeed getFeed;
+  final GetFriendActivities getFriendActivities;
   final CreateActivity createActivity;
   final UpdateActivity updateActivity;
   final DeleteActivity deleteActivity;
@@ -25,6 +26,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     required this.listUserActivities,
     required this.getStats,
     required this.getFeed,
+    required this.getFriendActivities,
     required this.createActivity,
     required this.updateActivity,
     required this.deleteActivity,
@@ -36,6 +38,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     on<FetchUserActivitiesEvent>(_onFetchUserActivities);
     on<FetchStatsEvent>(_onFetchStats);
     on<FetchFeedEvent>(_onFetchFeed);
+    on<FetchFriendActivitiesEvent>(_onFetchFriendActivities);
     on<CreateActivityEvent>(_onCreateActivity);
     on<UpdateActivityEvent>(_onUpdateActivity);
     on<DeleteActivityEvent>(_onDeleteActivity);
@@ -186,6 +189,35 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
           feedStatus: ActivityStatus.failure,
           message: e.toString(),
         ),
+      );
+    }
+  }
+
+  Future<void> _onFetchFriendActivities(
+    FetchFriendActivitiesEvent event,
+    Emitter<ActivityState> emit,
+  ) async {
+    // We reuse status to show loading state in friend activities context only if first page
+    if (event.page <= 1) emit(state.copyWith(status: ActivityStatus.loading));
+    try {
+      final result = await getFriendActivities(
+        event.friendId,
+        page: event.page,
+        limit: event.limit,
+      );
+      final merged = event.page <= 1
+          ? result.activities
+          : [...state.friendActivities, ...result.activities];
+      emit(
+        state.copyWith(
+          status: ActivityStatus.success,
+          friendActivities: merged,
+          friendPagination: result.pagination,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(status: ActivityStatus.failure, message: e.toString()),
       );
     }
   }

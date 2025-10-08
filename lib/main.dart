@@ -7,7 +7,6 @@ import 'package:pacemate/features/activities/activities_di.dart';
 import 'package:pacemate/features/auth/auth_di.dart';
 import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:pacemate/features/home/presentation/bloc/search_cubit.dart';
-import 'package:pacemate/features/social/presentation/bloc/social_bloc.dart';
 import 'package:pacemate/features/social/social_di.dart';
 import 'package:pacemate/firebase_options.dart';
 import 'core/theme/app_theme.dart';

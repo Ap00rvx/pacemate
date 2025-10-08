@@ -57,6 +57,16 @@ class GetFeed {
   }) => repo.getFeed(page: page, limit: limit);
 }
 
+class GetFriendActivities {
+  final ActivityRepository repo;
+  GetFriendActivities(this.repo);
+  Future<({List<Activity> activities, Pagination pagination})> call(
+    String friendId, {
+    int page = 1,
+    int limit = 15,
+  }) => repo.getFriendActivities(friendId, page: page, limit: limit);
+}
+
 class CreateActivity {
   final ActivityRepository repo;
   CreateActivity(this.repo);

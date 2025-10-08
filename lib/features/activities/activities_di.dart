@@ -15,6 +15,9 @@ class ActivitiesDI {
   );
   static final GetStats getStats = GetStats(_repo);
   static final GetFeed getFeed = GetFeed(_repo);
+  static final GetFriendActivities getFriendActivities = GetFriendActivities(
+    _repo,
+  );
   static final CreateActivity createActivity = CreateActivity(_repo);
   static final UpdateActivity updateActivity = UpdateActivity(_repo);
   static final DeleteActivity deleteActivity = DeleteActivity(_repo);
@@ -26,6 +29,7 @@ class ActivitiesDI {
     listUserActivities: listUserActivities,
     getStats: getStats,
     getFeed: getFeed,
+    getFriendActivities: getFriendActivities,
     createActivity: createActivity,
     updateActivity: updateActivity,
     deleteActivity: deleteActivity,

@@ -24,6 +24,9 @@ abstract class ActivityRepository {
     int limit,
   });
 
+  Future<({List<Activity> activities, Pagination pagination})>
+  getFriendActivities(String friendId, {int page, int limit});
+
   Future<Activity> createActivity({
     required ActivityType type,
     required int duration,

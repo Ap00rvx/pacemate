@@ -6,7 +6,6 @@ import 'package:pacemate/core/router/route_names.dart';
 import 'package:pacemate/core/widgets/overlay.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pacemate/features/auth/domain/model/user_model.dart';
 import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:pacemate/features/profile/domain/model/profle_model.dart';
 
@@ -186,9 +185,10 @@ class _HeaderSectionState extends State<HeaderSection> {
                                                 leading: CircleAvatar(
                                                   backgroundImage:
                                                       friend.avatar != null
-                                                          ? NetworkImage(
-                                                              friend.avatar!)
-                                                          : null,
+                                                      ? NetworkImage(
+                                                          friend.avatar!,
+                                                        )
+                                                      : null,
                                                   child: friend.avatar == null
                                                       ? Text(
                                                           friend.fullname[0]
@@ -197,14 +197,16 @@ class _HeaderSectionState extends State<HeaderSection> {
                                                       : null,
                                                 ),
                                                 title: Text(friend.fullname),
-                                               
+
                                                 onTap: () {
                                                   Navigator.pop(context);
-                                                  // AppRouter.push(
-                                                  //   RouteNames().userProfile,
-                                                  //   context,
-                                                  //   args: friend,
-                                                  // );
+                                                  AppRouter.push(
+                                                    RouteNames().viewProfile,
+                                                    context,
+                                                    queryParams: {
+                                                      "id": friend.id,
+                                                    },
+                                                  );
                                                 },
                                               );
                                             },

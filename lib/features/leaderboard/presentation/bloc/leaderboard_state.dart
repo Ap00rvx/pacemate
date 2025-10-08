@@ -6,6 +6,7 @@ class LeaderboardState extends Equatable {
   final LeaderboardEntry? topper;
   final String message;
   final LeaderboardData? data;
+  final String period; // 'week' | 'month' | 'year' | 'all'
 
   const LeaderboardState({
     required this.loading,
@@ -13,6 +14,7 @@ class LeaderboardState extends Equatable {
     required this.topper,
     required this.message,
     required this.data,
+    required this.period,
   });
 
   const LeaderboardState.initial()
@@ -20,7 +22,8 @@ class LeaderboardState extends Equatable {
       byCategory = const {},
       topper = null,
       message = '',
-      data = null;
+      data = null,
+      period = 'week';
 
   LeaderboardState copyWith({
     bool? loading,
@@ -28,6 +31,7 @@ class LeaderboardState extends Equatable {
     LeaderboardEntry? topper,
     String? message,
     LeaderboardData? data,
+    String? period,
   }) {
     return LeaderboardState(
       loading: loading ?? this.loading,
@@ -35,9 +39,17 @@ class LeaderboardState extends Equatable {
       topper: topper ?? this.topper,
       message: message ?? this.message,
       data: data ?? this.data,
+      period: period ?? this.period,
     );
   }
 
   @override
-  List<Object?> get props => [loading, byCategory, topper, message, data];
+  List<Object?> get props => [
+    loading,
+    byCategory,
+    topper,
+    message,
+    data,
+    period,
+  ];
 }
