@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+    Background notification icon
+    background_locator_2 will use @mipmap/ic_launcher by default if notificationIcon isn't set.
+    We explicitly set notificationIcon: 'ic_launcher' in LocationCubit to avoid resource lookup issues.
+
+    If you want a monochrome small icon to match status bar guidance, add it in res/drawable as ic_stat_name
+    and set notificationIcon: 'ic_stat_name'.
+    -->
+</resources>

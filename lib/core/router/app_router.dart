@@ -8,7 +8,6 @@ import 'package:pacemate/features/auth/presentation/screens/signin_page.dart';
 import 'package:pacemate/features/auth/presentation/screens/email_signup_dart.dart';
 import 'package:pacemate/features/onboarding/presentation/onboarding.dart';
 import 'package:pacemate/features/splash/presentation/splash.dart';
-import 'package:pacemate/features/home/presentation/screens/home_page.dart';
 import 'package:pacemate/features/activities/presentation/screens/activity_detail_page.dart';
 import 'package:pacemate/features/activities/presentation/screens/activity_view_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,10 +15,14 @@ import 'package:pacemate/features/social/presentation/screens/view_profile_page.
 import 'package:pacemate/features/social/presentation/screens/search_users_page.dart';
 import 'package:pacemate/features/social/presentation/screens/friend_requests_page.dart';
 import 'package:pacemate/features/social/social_di.dart';
+import 'package:pacemate/features/home/presentation/screens/home_page.dart';
 
 class AppRouter {
   static final _routeNames = RouteNames();
+  static final GlobalKey<NavigatorState> rootNavigatorKey =
+      GlobalKey<NavigatorState>();
   static final GoRouter router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: _routeNames.init,
     routes: [
       GoRoute(
@@ -48,13 +51,25 @@ class AppRouter {
       GoRoute(
         path: _routeNames.home,
         name: 'home',
-        pageBuilder: (context, state) => CustomTransitionPage<void>(
-          key: state.pageKey,
-          child: const HomePage(),
-          transitionsBuilder: defaultPageTransition,
-          transitionDuration: const Duration(milliseconds: 350),
-          reverseTransitionDuration: const Duration(milliseconds: 250),
-        ),
+        pageBuilder: (context, state) {
+          int initialIndex = 2;
+          final extra = state.extra;
+          if (extra is Map) {
+            final v = extra['tab'];
+            if (v is int) initialIndex = v;
+            if (v is String) {
+              final parsed = int.tryParse(v);
+              if (parsed != null) initialIndex = parsed;
+            }
+          }
+          return CustomTransitionPage<void>(
+            key: state.pageKey,
+            child: HomePage(initialIndex: initialIndex),
+            transitionsBuilder: defaultPageTransition,
+            transitionDuration: const Duration(milliseconds: 350),
+            reverseTransitionDuration: const Duration(milliseconds: 250),
+          );
+        },
       ),
       GoRoute(
         path: _routeNames.auth,

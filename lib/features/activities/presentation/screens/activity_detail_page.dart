@@ -26,6 +26,50 @@ class _ActivityDetailPageState extends State<ActivityDetailPage> {
   Feeling? _feeling;
   WeatherCondition? _weather;
 
+  // show open camera or gallery to pick image bottom sheet
+  void _showImagePickerBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera),
+              title: const Text('Camera'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                final image = await ImagePicker().pickImage(
+                  source: ImageSource.camera,
+                );
+                if (image != null) {
+                  setState(() {
+                    _imagePath = image.path;
+                  });
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo),
+              title: const Text('Gallery'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                final image = await ImagePicker().pickImage(
+                  source: ImageSource.gallery,
+                );
+                if (image != null) {
+                  setState(() {
+                    _imagePath = image.path;
+                  });
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -173,16 +217,7 @@ class _ActivityDetailPageState extends State<ActivityDetailPage> {
                       initialWeather: a.weather,
                       selectedFeeling: _feeling,
                       selectedWeather: _weather,
-                      onPickImage: () async {
-                        final picker = ImagePicker();
-                        final res = await picker.pickImage(
-                          source: ImageSource.gallery,
-                          imageQuality: 85,
-                        );
-                        if (res != null) {
-                          setState(() => _imagePath = res.path);
-                        }
-                      },
+                      onPickImage: _showImagePickerBottomSheet,
                       onSelectFeeling: (f) => setState(() => _feeling = f),
                       onSelectWeather: (w) => setState(() => _weather = w),
                       imagePath: _imagePath,
@@ -242,7 +277,6 @@ class _ActivityDetailPageState extends State<ActivityDetailPage> {
                                   context.read<ActivityBloc>().add(
                                     FetchFeedEvent(),
                                   );
-                              
                                 },
                                 child:
                                     state.mutateStatus == ActivityStatus.loading

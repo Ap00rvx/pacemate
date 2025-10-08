@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart' as geo;
+import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:pacemate/core/theme/app_theme.dart';
 import 'package:pacemate/core/widgets/app_loader.dart';
 import 'package:pacemate/core/widgets/logo_place.dart';
@@ -158,44 +162,47 @@ class _MapScreenState extends State<MapScreen> {
 
             return Scaffold(
               appBar: AppBar(
-                centerTitle: true,
+                centerTitle: false,
                 title: AppLogo(),
                 actions: const [],
               ),
               body: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(16),
+                  Visibility(
+                    visible: state.isTracking || state.points.isNotEmpty,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(16),
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _StatItem(
-                          label: 'Distance',
-                          value:
-                              '${(state.distanceMeters / 1000).toStringAsFixed(2)} km',
-                        ),
-                        _StatItem(
-                          label: 'Duration',
-                          value: _formatDuration(state.durationSeconds),
-                        ),
-                        _StatItem(
-                          label: 'Pace',
-                          value: _formatPace(
-                            distanceMeters: state.distanceMeters,
-                            durationSeconds: state.durationSeconds,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _StatItem(
+                            label: 'Distance',
+                            value:
+                                '${(state.distanceMeters / 1000).toStringAsFixed(2)} km',
                           ),
-                        ),
-                        _StatItem(
-                          label: 'Calories',
-                          value: '${state.calories} kcal',
-                        ),
-                      ],
+                          _StatItem(
+                            label: 'Duration',
+                            value: _formatDuration(state.durationSeconds),
+                          ),
+                          _StatItem(
+                            label: 'Pace',
+                            value: _formatPace(
+                              distanceMeters: state.distanceMeters,
+                              durationSeconds: state.durationSeconds,
+                            ),
+                          ),
+                          _StatItem(
+                            label: 'Calories',
+                            value: '${state.calories} kcal',
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   Expanded(
@@ -299,6 +306,12 @@ class _MapScreenState extends State<MapScreen> {
                               ),
                           ],
                         ),
+                        if (kDebugMode)
+                          Positioned(
+                            left: 12,
+                            top: 12,
+                            child: _DebugOverlay(location: _location),
+                          ),
                         Positioned(
                           left: 16,
                           right: 16,
@@ -332,6 +345,16 @@ class _MapScreenState extends State<MapScreen> {
                                   cubit.start(
                                     state.activityType ?? ActivityType.running,
                                   );
+                                  // Start background tracking service
+                                  await _location.startBackgroundTracking();
+                                  // If plugin didn't start, offer guidance
+                                  try {
+                                    final running = await _location
+                                        .isBackgroundServiceRunning();
+                                    if (!running && mounted) {
+                                      await _showBgHelpDialog(context);
+                                    }
+                                  } catch (_) {}
                                   final pos = locState.lastPosition;
                                   if (pos != null) {
                                     cubit.addPoint(
@@ -385,6 +408,8 @@ class _MapScreenState extends State<MapScreen> {
                                     );
                                   }
                                   cubit.stop();
+                                  // Stop background service
+                                  await _location.stopBackgroundTracking();
                                 },
                               ),
                             ],
@@ -399,6 +424,80 @@ class _MapScreenState extends State<MapScreen> {
           },
         ),
       ),
+    );
+  }
+
+  Future<void> _showBgHelpDialog(BuildContext context) async {
+    // Gather current permission snapshot
+    final snap = await _location.permissionSnapshot();
+    if (!mounted) return;
+    final cs = Theme.of(context).colorScheme;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Enable reliable background tracking'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('To keep tracking with the screen locked, please:'),
+              const SizedBox(height: 8),
+              const Text('• Allow notifications'),
+              const Text('• Allow location “All the time”'),
+              const Text(
+                '• Optionally disable battery optimization for Pacemate',
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Current permissions (Android):',
+                style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Notification: ${snap['notif'] ?? '-'}',
+                style: const TextStyle(fontSize: 12),
+              ),
+              Text(
+                'Location:     ${snap['loc'] ?? '-'}',
+                style: const TextStyle(fontSize: 12),
+              ),
+              Text(
+                'LocationAlways: ${snap['locAlways'] ?? '-'}',
+                style: const TextStyle(fontSize: 12),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                // Open general app settings
+                try {
+                  await ph.openAppSettings();
+                } catch (_) {}
+              },
+              child: const Text('App settings'),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Open OS location settings
+                try {
+                  await geo.Geolocator.openLocationSettings();
+                } catch (_) {}
+              },
+              child: const Text('Location settings'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(ctx).pop();
+                // Retry background start after user possibly changed settings
+                await _location.startBackgroundTracking();
+              },
+              child: const Text('Retry'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -419,6 +518,95 @@ class _MapScreenState extends State<MapScreen> {
     final m = (paceSecPerKm ~/ 60).toString().padLeft(2, '0');
     final s = (paceSecPerKm % 60).round().toString().padLeft(2, '0');
     return '$m:$s/km';
+  }
+}
+
+class _DebugOverlay extends StatefulWidget {
+  const _DebugOverlay({required this.location});
+  final LocationCubit location;
+
+  @override
+  State<_DebugOverlay> createState() => _DebugOverlayState();
+}
+
+class _DebugOverlayState extends State<_DebugOverlay> {
+  bool _bgPlugin = false; // BackgroundLocator.isServiceRunning()
+  bool _bgFlag = false; // LocationCubit.isBgActive
+  String? _logPath;
+  int _logSize = 0;
+  Map<String, dynamic>? _permSnap;
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    try {
+      final bgPlugin = await widget.location.isBackgroundServiceRunning();
+      final bgFlag = widget.location.isBgActive;
+      final path = await widget.location.getRunLogPath();
+      final snap = await widget.location.permissionSnapshot();
+      int size = 0;
+      if (path != null) {
+        final f = File(path);
+        if (await f.exists()) {
+          size = await f.length();
+        }
+      }
+      if (mounted) {
+        setState(() {
+          _bgPlugin = bgPlugin;
+          _bgFlag = bgFlag;
+          _logPath = path;
+          _logSize = size;
+          _permSnap = snap;
+        });
+      }
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = context.watch<LocationCubit>().state.lastPosition;
+    final cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: _refresh,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.6),
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+          border: Border.all(color: cs.outlineVariant),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: DefaultTextStyle(
+            style: const TextStyle(fontSize: 11, color: Colors.white),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('DBG: Tap to refresh'),
+                Text('BG (plugin): ${_bgPlugin ? 'yes' : 'no'}'),
+                Text('BG (flag):   ${_bgFlag ? 'yes' : 'no'}'),
+                Text(
+                  'Last pos: ${loc != null ? '${loc.latitude.toStringAsFixed(6)}, ${loc.longitude.toStringAsFixed(6)} (alt ${loc.altitude.toStringAsFixed(1)})' : 'null'}',
+                ),
+                Text('Log: ${_logPath ?? '-'}'),
+                Text('Log size: ${_logSize} bytes'),
+                if (_permSnap != null) ...[
+                  const SizedBox(height: 4),
+                  Text('Perm notif: ${_permSnap!['notif'] ?? '-'}'),
+                  Text('Perm loc:   ${_permSnap!['loc'] ?? '-'}'),
+                  Text('Perm always:${_permSnap!['locAlways'] ?? '-'}'),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
