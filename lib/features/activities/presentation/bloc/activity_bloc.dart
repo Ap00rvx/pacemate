@@ -262,7 +262,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     UpdateActivityEvent event,
     Emitter<ActivityState> emit,
   ) async {
-    emit(state.copyWith(mutateStatus: ActivityStatus.loading));
+    // emit(state.copyWith(mutateStatus: ActivityStatus.loading));
     try {
       final updated = await updateActivity(event.id, event.update);
       final list = state.activities

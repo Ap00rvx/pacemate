@@ -29,6 +29,7 @@ class _MapScreenState extends State<MapScreen> {
   bool _mapReady = false;
   LatLng? _pendingTarget;
   double? _pendingZoom;
+  bool _shrinking = false;
 
   @override
   void initState() {
@@ -159,40 +160,7 @@ class _MapScreenState extends State<MapScreen> {
               appBar: AppBar(
                 centerTitle: true,
                 title: AppLogo(),
-                actions: [
-                  PopupMenuButton<ActivityType>(
-                    icon: const Icon(Iconsax.menu4),
-                    onSelected: (t) {
-                      if (!state.isTracking) {
-                        cubit.start(t);
-                        final pos = locState.lastPosition;
-                        if (pos != null) {
-                          cubit.addPoint(
-                            TrackingPoint(
-                              latitude: pos.latitude,
-                              longitude: pos.longitude,
-                              timestamp: DateTime.now(),
-                              distanceFromLast: 0,
-                              elevation: pos.altitude.toInt(),
-                            ),
-                          );
-                          _safeMove(LatLng(pos.latitude, pos.longitude), 19);
-                          _lastConsumed = LatLng(pos.latitude, pos.longitude);
-                        }
-                      }
-                    },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(
-                        value: ActivityType.running,
-                        child: Text('Running'),
-                      ),
-                      PopupMenuItem(
-                        value: ActivityType.walking,
-                        child: Text('Walking'),
-                      ),
-                    ],
-                  ),
-                ],
+                actions: const [],
               ),
               body: Column(
                 children: [
@@ -335,64 +303,91 @@ class _MapScreenState extends State<MapScreen> {
                           left: 16,
                           right: 16,
                           bottom: 20,
-                          child: _ControlsBar(
-                            isTracking: state.isTracking,
-                            isPaused: state.isPaused,
-                            onStart: () {
-                              if (!locState.ready) {
-                                _location.ensureReady();
-                                return;
-                              }
-                              cubit.start(
-                                state.activityType ?? ActivityType.running,
-                              );
-                              final pos = locState.lastPosition;
-                              if (pos != null) {
-                                cubit.addPoint(
-                                  TrackingPoint(
-                                    latitude: pos.latitude,
-                                    longitude: pos.longitude,
-                                    timestamp: DateTime.now(),
-                                    distanceFromLast: 0,
-                                    elevation: pos.altitude.toInt(),
-                                  ),
-                                );
-                                _safeMove(
-                                  LatLng(pos.latitude, pos.longitude),
-                                  19,
-                                );
-                                _lastConsumed = LatLng(
-                                  pos.latitude,
-                                  pos.longitude,
-                                );
-                              }
-                            },
-                            onPause: () => cubit.pause(),
-                            onResume: () => cubit.resume(),
-                            onStop: () async {
-                              // Persist activity via API and then stop locally
-                              final actBloc = context.read<ActivityBloc>();
-                      
-                              final s = cubit.state;
-                              if (s.activityType != null &&
-                                  s.durationSeconds > 0 &&
-                                  s.distanceMeters > 0) {
-                                actBloc.add(
-                                  CreateActivityEvent(
-                                    type: s.activityType!,
-                                    duration: s.durationSeconds,
-                                    distance: s.distanceMeters,
-                                    calories: s.calories,
-                                    route: [
-                                      for (final p in s.points)
-                                        (p.latitude, p.longitude),
-                                    ],
-                                    elevation: s.elevation?.toDouble() ?? 0.0,
-                                  ),
-                                );
-                              }
-                              cubit.stop();
-                            },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Visibility(
+                                visible: !state.isTracking,
+                                child: _TypeSelector(
+                                  selected: state.activityType,
+                                  onSelected: (t) {
+                                    context.read<TrackingCubit>().setType(t);
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              _ControlsBar(
+                                shrinking: _shrinking,
+                                isTracking: state.isTracking,
+                                isPaused: state.isPaused,
+                                onStart: () async {
+                                  if (!locState.ready) {
+                                    _location.ensureReady();
+                                    return;
+                                  }
+                                  setState(() => _shrinking = true);
+                                  await Future.delayed(
+                                    const Duration(milliseconds: 200),
+                                  );
+                                  cubit.start(
+                                    state.activityType ?? ActivityType.running,
+                                  );
+                                  final pos = locState.lastPosition;
+                                  if (pos != null) {
+                                    cubit.addPoint(
+                                      TrackingPoint(
+                                        latitude: pos.latitude,
+                                        longitude: pos.longitude,
+                                        timestamp: DateTime.now(),
+                                        distanceFromLast: 0,
+                                        elevation: pos.altitude.toInt(),
+                                      ),
+                                    );
+                                    _safeMove(
+                                      LatLng(pos.latitude, pos.longitude),
+                                      19,
+                                    );
+                                    _lastConsumed = LatLng(
+                                      pos.latitude,
+                                      pos.longitude,
+                                    );
+                                  }
+                                  // expand back after starting
+                                  await Future.delayed(
+                                    const Duration(milliseconds: 150),
+                                  );
+                                  if (mounted)
+                                    setState(() => _shrinking = false);
+                                },
+                                onPause: () => cubit.pause(),
+                                onResume: () => cubit.resume(),
+                                onStop: () async {
+                                  // Persist activity via API and then stop locally
+                                  final actBloc = context.read<ActivityBloc>();
+
+                                  final s = cubit.state;
+                                  if (s.activityType != null &&
+                                      s.durationSeconds > 0 &&
+                                      s.distanceMeters > 0) {
+                                    actBloc.add(
+                                      CreateActivityEvent(
+                                        type: s.activityType!,
+                                        duration: s.durationSeconds,
+                                        distance: s.distanceMeters,
+                                        calories: s.calories,
+                                        route: [
+                                          for (final p in s.points)
+                                            (p.latitude, p.longitude),
+                                        ],
+                                        elevation:
+                                            s.elevation?.toDouble() ?? 0.0,
+                                      ),
+                                    );
+                                  }
+                                  cubit.stop();
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -427,8 +422,99 @@ class _MapScreenState extends State<MapScreen> {
   }
 }
 
+class _TypeSelector extends StatelessWidget {
+  const _TypeSelector({required this.selected, required this.onSelected});
+  final ActivityType? selected;
+  final ValueChanged<ActivityType> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final s = selected;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _TypeChip(
+          label: 'Running',
+          icon: Icons.directions_run,
+          selected: s == ActivityType.running,
+          onTap: () => onSelected(ActivityType.running),
+          color: cs.primary,
+        ),
+        const SizedBox(width: 8),
+        _TypeChip(
+          label: 'Walking',
+          icon: Icons.directions_walk,
+          selected: s == ActivityType.walking,
+          onTap: () => onSelected(ActivityType.walking),
+          color: cs.tertiary,
+        ),
+        const SizedBox(width: 8),
+        _TypeChip(
+          label: 'Cycling',
+          icon: Icons.directions_bike,
+          selected: s == ActivityType.cycling,
+          onTap: () => onSelected(ActivityType.cycling),
+          color: cs.secondary,
+        ),
+      ],
+    );
+  }
+}
+
+class _TypeChip extends StatelessWidget {
+  const _TypeChip({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+    required this.color,
+  });
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final bg = selected ? color.withOpacity(0.15) : cs.surface;
+    final border = selected ? color : cs.outline.withOpacity(0.4);
+    final fg = selected ? color : cs.onSurface;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: const BorderRadius.all(Radius.circular(24)),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: const BorderRadius.all(Radius.circular(24)),
+          border: Border.all(color: border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: fg),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: fg,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ControlsBar extends StatelessWidget {
   const _ControlsBar({
+    required this.shrinking,
     required this.isTracking,
     required this.isPaused,
     required this.onStart,
@@ -437,6 +523,7 @@ class _ControlsBar extends StatelessWidget {
     required this.onStop,
   });
 
+  final bool shrinking;
   final bool isTracking;
   final bool isPaused;
   final VoidCallback onStart;
@@ -466,17 +553,26 @@ class _ControlsBar extends StatelessWidget {
           child: BlocBuilder<ActivityBloc, ActivityState>(
             builder: (context, state) {
               if (state.mutateStatus == ActivityStatus.loading) {
-                return SizedBox(height: 30, width: 30, child: AppLoader());
+                return SizedBox(
+                  height: 30,
+                  width: 30,
+                  child: Center(child: AppLoader()),
+                );
               }
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   if (!isTracking)
-                    _ControlButton(
-                      icon: Iconsax.play,
-                      label: 'Start Tracking',
-                      color: cs.primary,
-                      onTap: onStart,
+                    AnimatedScale(
+                      scale: shrinking ? 0.88 : 1.0,
+                      duration: const Duration(milliseconds: 180),
+                      curve: Curves.easeInOut,
+                      child: _ControlButton(
+                        icon: Iconsax.play,
+                        label: 'Start Tracking',
+                        color: cs.primary,
+                        onTap: onStart,
+                      ),
                     )
                   else ...[
                     if (!isPaused)

@@ -26,7 +26,7 @@ class ActivityRemoteDataSource {
             )
             .where((s) => s.isNotEmpty)
             .toList() ??
-        [];
+        <String>[];
     final routeList =
         (a['route'] as List?)?.map((p) {
           final lat = (p['lat'] as num).toDouble();
@@ -277,16 +277,25 @@ class ActivityRemoteDataSource {
     Map<String, dynamic> update,
   ) async {
     final headers = await _authHeaders();
-    dynamic dataToSend = update;
+    // Normalize 'type' if provided as enum
+    final mapped = Map<String, dynamic>.from(update);
+    if (mapped['type'] is ActivityType) {
+      mapped['type'] = switch (mapped['type'] as ActivityType) {
+        ActivityType.running => 'running',
+        ActivityType.walking => 'walking',
+        ActivityType.cycling => 'cycling',
+      };
+    }
+    dynamic dataToSend = mapped;
     Options options = Options(headers: headers.isEmpty ? null : headers);
     // Support multipart if a local file path is provided under 'imageFilePath'
     try {
-      if (update.containsKey('imageFilePath') &&
-          update['imageFilePath'] is String) {
+      if (mapped.containsKey('imageFilePath') &&
+          mapped['imageFilePath'] is String) {
         // Build FormData
-        final path = update['imageFilePath'] as String;
+        final path = mapped['imageFilePath'] as String;
         final form = FormData();
-        for (final entry in update.entries) {
+        for (final entry in mapped.entries) {
           if (entry.key == 'imageFilePath') continue;
           form.fields.add(MapEntry(entry.key, entry.value.toString()));
         }

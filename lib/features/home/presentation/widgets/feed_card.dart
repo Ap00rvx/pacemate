@@ -1,3 +1,4 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -10,11 +11,16 @@ import 'package:pacemate/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:pacemate/features/home/presentation/bloc/bottom_nav_cubit.dart';
 import 'package:latlong2/latlong.dart';
 
-class FeedCard extends StatelessWidget {
+class FeedCard extends StatefulWidget {
   FeedCard({required this.activity, required this.onTap});
   final Activity activity;
   final VoidCallback onTap;
 
+  @override
+  State<FeedCard> createState() => _FeedCardState();
+}
+
+class _FeedCardState extends State<FeedCard> {
   double calculateMapZoomLevel(List<LatLng> points) {
     if (points.isEmpty) return 13;
     double minLat = points.first.latitude;
@@ -46,7 +52,7 @@ class FeedCard extends StatelessWidget {
   }
 
   final MapController mapController = MapController();
-
+  late CarouselSliderController carouselController;
   String formatDuration(int totalSeconds) {
     final hours = totalSeconds ~/ 3600;
     final minutes = (totalSeconds % 3600) ~/ 60;
@@ -61,10 +67,16 @@ class FeedCard extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    carouselController = CarouselSliderController();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return InkWell(
-      onTap: () => onTap(),
+      onTap: () => widget.onTap(),
       child: Container(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,27 +96,30 @@ class FeedCard extends StatelessWidget {
                       GestureDetector(
                         onTap: () {
                           final auth = context.read<AuthBloc>();
-                          final self = activity.userId == auth.state.user?.id;
+                          final self =
+                              widget.activity.userId == auth.state.user?.id;
                           if (self) {
                             context.read<BottomNavCubit>().setIndex(4);
-                          } else if (activity.user != null) {
+                          } else if (widget.activity.user != null) {
                             AppRouter.push(
                               RouteNames().viewProfile,
                               context,
-                              queryParams: {'id': activity.user!.id},
+                              queryParams: {'id': widget.activity.user!.id},
                             );
                           }
                         },
                         child: CircleAvatar(
                           radius: 24,
                           backgroundColor: AppTheme.surfaceVariant,
-                          backgroundImage: activity.user?.avatar != null
-                              ? NetworkImage(activity.user?.avatar ?? '')
+                          backgroundImage: widget.activity.user?.avatar != null
+                              ? NetworkImage(widget.activity.user?.avatar ?? '')
                               : null,
-                          child: activity.user?.avatar == null
+                          child: widget.activity.user?.avatar == null
                               ? Text(
-                                  activity.user?.fullname.isNotEmpty == true
-                                      ? activity.user!.fullname[0].toUpperCase()
+                                  widget.activity.user?.fullname.isNotEmpty ==
+                                          true
+                                      ? widget.activity.user!.fullname[0]
+                                            .toUpperCase()
                                       : '',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w600,
@@ -119,19 +134,20 @@ class FeedCard extends StatelessWidget {
                         child: GestureDetector(
                           onTap: () {
                             final auth = context.read<AuthBloc>();
-                            final self = activity.userId == auth.state.user?.id;
+                            final self =
+                                widget.activity.userId == auth.state.user?.id;
                             if (self) {
                               context.read<BottomNavCubit>().setIndex(4);
-                            } else if (activity.user != null) {
+                            } else if (widget.activity.user != null) {
                               AppRouter.push(
                                 RouteNames().viewProfile,
                                 context,
-                                queryParams: {'id': activity.user!.id},
+                                queryParams: {'id': widget.activity.user!.id},
                               );
                             }
                           },
                           child: Text(
-                            activity.user?.fullname ?? '',
+                            widget.activity.user?.fullname ?? '',
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.w600,
@@ -141,7 +157,7 @@ class FeedCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        timesAgo(activity.createdAt),
+                        timesAgo(widget.activity.createdAt),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppTheme.muted,
                           fontSize: 12,
@@ -151,7 +167,7 @@ class FeedCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${activity.type.name.toUpperCase()} • ${(activity.distance / 1000).toStringAsFixed(2)} km',
+                    '${widget.activity.type.name.toUpperCase()} • ${(widget.activity.distance / 1000).toStringAsFixed(2)} km',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppTheme.onBg,
                       fontSize: 24,
@@ -165,80 +181,226 @@ class FeedCard extends StatelessWidget {
             const SizedBox(height: 8),
             //show route on flutter map
             Container(
-              height: 240,
-              color: cs.primaryContainer,
-              child: Center(
-                child: FlutterMap(
-                  mapController: mapController,
+              height: 290,
 
-                  options: MapOptions(
-                    initialZoom: calculateMapZoomLevel(
-                      activity.route
-                          .map((e) => LatLng(e.latitude, e.longitude))
-                          .toList(),
-                    ),
-                    interactionOptions: InteractionOptions(
-                      flags: InteractiveFlag.none,
-                    ),
-                    initialCenter: activity.route.isNotEmpty
-                        ? LatLng(
-                            activity.route[0].latitude,
-                            activity.route[0].longitude,
-                          )
-                        : LatLng(0, 0),
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                          'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      subdomains: const ['a', 'b', 'c'],
-                      userAgentPackageName: 'com.pacemate.pacemate',
-                    ),
-                    if (activity.route.isNotEmpty)
-                      PolylineLayer(
-                        polylines: [
-                          Polyline(
-                            points: activity.route
+              child: Center(
+                child: widget.activity.image != null
+                    ? Column(
+                        children: [
+                          CarouselSlider(
+                            carouselController: carouselController!,
+                            items: [
+                              Image.network(
+                                widget.activity.image!,
+                                fit: BoxFit.fitWidth,
+                                width: double.infinity,
+                                height: 240,
+                              ),
+                              SizedBox(
+                                height: 240,
+                                child: FlutterMap(
+                                  mapController: mapController,
+
+                                  options: MapOptions(
+                                    initialZoom: calculateMapZoomLevel(
+                                      widget.activity.route
+                                          .map(
+                                            (e) =>
+                                                LatLng(e.latitude, e.longitude),
+                                          )
+                                          .toList(),
+                                    ),
+                                    interactionOptions: InteractionOptions(
+                                      flags: InteractiveFlag.none,
+                                    ),
+                                    initialCenter:
+                                        widget.activity.route.isNotEmpty
+                                        ? LatLng(
+                                            widget.activity.route[0].latitude,
+                                            widget.activity.route[0].longitude,
+                                          )
+                                        : LatLng(0, 0),
+                                  ),
+                                  children: [
+                                    TileLayer(
+                                      urlTemplate:
+                                          'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                      subdomains: const ['a', 'b', 'c'],
+                                      userAgentPackageName:
+                                          'com.pacemate.pacemate',
+                                    ),
+                                    if (widget.activity.route.isNotEmpty)
+                                      PolylineLayer(
+                                        polylines: [
+                                          Polyline(
+                                            points: widget.activity.route
+                                                .map(
+                                                  (e) => LatLng(
+                                                    e.latitude,
+                                                    e.longitude,
+                                                  ),
+                                                )
+                                                .toList(),
+                                            strokeWidth: 4,
+                                            color: AppTheme.primary,
+                                          ),
+                                        ],
+                                      ),
+                                    if (widget.activity.route.isNotEmpty)
+                                      MarkerLayer(
+                                        markers: [
+                                          Marker(
+                                            point: LatLng(
+                                              widget
+                                                  .activity
+                                                  .route
+                                                  .first
+                                                  .latitude,
+                                              widget
+                                                  .activity
+                                                  .route
+                                                  .first
+                                                  .longitude,
+                                            ),
+                                            width: 30,
+                                            height: 30,
+                                            child: Icon(
+                                              Icons.circle,
+                                              color: cs.primary,
+                                              size: 16,
+                                            ),
+                                          ),
+                                          Marker(
+                                            point: LatLng(
+                                              widget
+                                                  .activity
+                                                  .route
+                                                  .last
+                                                  .latitude,
+                                              widget
+                                                  .activity
+                                                  .route
+                                                  .last
+                                                  .longitude,
+                                            ),
+                                            width: 30,
+                                            height: 30,
+                                            child: Icon(
+                                              Icons.location_on,
+                                              color: cs.error,
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            options: CarouselOptions(
+                              viewportFraction: 1,
+                              height: 240,
+                              aspectRatio: 16 / 9,
+                              enlargeCenterPage: false,
+                              enableInfiniteScroll: false,
+                              initialPage: 0,
+                              autoPlay: false,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          // dots indicator
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [0, 1].map((index) {
+                              return Container(
+                                width: 8.0,
+                                height: 8.0,
+                                margin: const EdgeInsets.symmetric(
+                                  vertical: 10.0,
+                                  horizontal: 2.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.grey,
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      )
+                    : FlutterMap(
+                        mapController: mapController,
+
+                        options: MapOptions(
+                          initialZoom: calculateMapZoomLevel(
+                            widget.activity.route
                                 .map((e) => LatLng(e.latitude, e.longitude))
                                 .toList(),
-                            strokeWidth: 4,
-                            color: AppTheme.primary,
                           ),
+                          interactionOptions: InteractionOptions(
+                            flags: InteractiveFlag.none,
+                          ),
+                          initialCenter: widget.activity.route.isNotEmpty
+                              ? LatLng(
+                                  widget.activity.route[0].latitude,
+                                  widget.activity.route[0].longitude,
+                                )
+                              : LatLng(0, 0),
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate:
+                                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            subdomains: const ['a', 'b', 'c'],
+                            userAgentPackageName: 'com.pacemate.pacemate',
+                          ),
+                          if (widget.activity.route.isNotEmpty)
+                            PolylineLayer(
+                              polylines: [
+                                Polyline(
+                                  points: widget.activity.route
+                                      .map(
+                                        (e) => LatLng(e.latitude, e.longitude),
+                                      )
+                                      .toList(),
+                                  strokeWidth: 4,
+                                  color: AppTheme.primary,
+                                ),
+                              ],
+                            ),
+                          if (widget.activity.route.isNotEmpty)
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: LatLng(
+                                    widget.activity.route.first.latitude,
+                                    widget.activity.route.first.longitude,
+                                  ),
+                                  width: 30,
+                                  height: 30,
+                                  child: Icon(
+                                    Icons.circle,
+                                    color: cs.primary,
+                                    size: 16,
+                                  ),
+                                ),
+                                Marker(
+                                  point: LatLng(
+                                    widget.activity.route.last.latitude,
+                                    widget.activity.route.last.longitude,
+                                  ),
+                                  width: 30,
+                                  height: 30,
+                                  child: Icon(
+                                    Icons.location_on,
+                                    color: cs.error,
+                                    size: 20,
+                                  ),
+                                ),
+                              ],
+                            ),
                         ],
                       ),
-                    if (activity.route.isNotEmpty)
-                      MarkerLayer(
-                        markers: [
-                          Marker(
-                            point: LatLng(
-                              activity.route.first.latitude,
-                              activity.route.first.longitude,
-                            ),
-                            width: 30,
-                            height: 30,
-                            child: Icon(
-                              Icons.circle,
-                              color: cs.primary,
-                              size: 16,
-                            ),
-                          ),
-                          Marker(
-                            point: LatLng(
-                              activity.route.last.latitude,
-                              activity.route.last.longitude,
-                            ),
-                            width: 30,
-                            height: 30,
-                            child: Icon(
-                              Icons.location_on,
-                              color: cs.error,
-                              size: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
               ),
             ),
 
@@ -265,7 +427,7 @@ class FeedCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        formatDuration(activity.duration),
+                        formatDuration(widget.activity.duration),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
@@ -285,7 +447,7 @@ class FeedCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${activity.averagePace.toString()} min/km',
+                        '${widget.activity.averagePace.toString()} min/km',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
@@ -305,7 +467,7 @@ class FeedCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${activity.calories} kcal',
+                        '${widget.activity.calories} kcal',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,

@@ -14,6 +14,13 @@ class TrackingCubit extends Cubit<TrackingState> {
 
   Timer? _timer;
 
+  // Allow selecting the activity type before starting tracking
+  void setType(ActivityType type) {
+    // Don't override type mid-session to avoid inconsistent calorie calc
+    if (state.isTracking) return;
+    emit(state.copyWith(activityType: type));
+  }
+
   void start(ActivityType type) {
     _timer?.cancel();
     emit(
